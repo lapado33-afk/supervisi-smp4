@@ -4,8 +4,12 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   define: {
-    // Memberikan nilai default string kosong jika API_KEY belum diatur agar app tidak crash
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || "")
+    // Memastikan process.env terbaca sebagai objek di browser
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || ""),
+    'process.env': {}
+  },
+  server: {
+    port: 3000
   },
   build: {
     outDir: 'dist',
