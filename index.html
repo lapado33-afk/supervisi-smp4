@@ -34,7 +34,7 @@
 </head>
 <body>
     <div id="root"></div>
-    <!-- Entry point aplikasi. Vite akan mengubah ini menjadi file .js yang valid saat build -->
-    <script type="module" src="/index.tsx"></script>
+    <!-- Menggunakan path relatif agar Vite mengenali dan mentransformasi file .tsx ini menjadi JavaScript -->
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>
