@@ -13,6 +13,9 @@
           padding: 0;
           background-color: #f8fafc;
         }
+        #root {
+          min-height: 100vh;
+        }
     </style>
 <script type="importmap">
 {
@@ -31,7 +34,7 @@
 </head>
 <body>
     <div id="root"></div>
-    <!-- Vite akan secara otomatis memproses file index.tsx ini -->
-    <script type="module" src="/index.tsx"></script>
+    <!-- Menggunakan ./ agar relatif terhadap root project -->
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>
