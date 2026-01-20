@@ -16,9 +16,9 @@ const Dashboard: React.FC<Props> = ({ observations }) => {
   ];
 
   const pieData = [
-    { name: 'Terjadwal', value: Math.max(observations.filter(o => o.status === SupervisionStatus.PLANNED).length, 0), color: '#f59e0b' },
-    { name: 'Selesai', value: Math.max(observations.filter(o => o.status === SupervisionStatus.FOLLOWED_UP).length, 0), color: '#10b981' },
-    { name: 'Belum', value: Math.max(15 - observations.length, 0), color: '#e2e8f0' },
+    { name: 'Terjadwal', value: observations.filter(o => o.status === SupervisionStatus.PLANNED).length || 0, color: '#f59e0b' },
+    { name: 'Selesai', value: observations.filter(o => o.status === SupervisionStatus.FOLLOWED_UP).length || 0, color: '#10b981' },
+    { name: 'Sisa', value: Math.max(15 - observations.length, 0), color: '#e2e8f0' },
   ];
 
   const barData = [
@@ -29,7 +29,7 @@ const Dashboard: React.FC<Props> = ({ observations }) => {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in duration-500">
       <div>
         <h2 className="text-2xl font-bold text-slate-900">Dashboard Supervisi</h2>
         <p className="text-slate-500 text-sm">Pemantauan progres penjaminan mutu guru SMPN 4 Mappedeceng.</p>
@@ -37,8 +37,8 @@ const Dashboard: React.FC<Props> = ({ observations }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-            <div className={`${stat.color} p-3 rounded-xl text-white`}>
+          <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4 transition-transform hover:scale-[1.02]">
+            <div className={`${stat.color} p-3 rounded-xl text-white shadow-lg shadow-blue-100`}>
               <stat.icon size={24} />
             </div>
             <div>
@@ -50,50 +50,51 @@ const Dashboard: React.FC<Props> = ({ observations }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
           <h3 className="text-lg font-bold mb-6">Volume Observasi</h3>
-          <div className="h-64 w-full">
+          <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData}>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12}} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#94a3b8'}} />
                 <YAxis hide />
-                <Tooltip cursor={{fill: '#f8fafc'}} />
-                <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={50} />
+                <Tooltip cursor={{fill: '#f1f5f9'}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
           <h3 className="text-lg font-bold mb-6">Status Progres</h3>
-          <div className="h-64 w-full flex items-center justify-center">
+          <div className="h-72 w-full flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={65}
+                  outerRadius={85}
                   paddingAngle={5}
                   dataKey="value"
+                  animationDuration={1000}
                 >
                   {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={{borderRadius: '12px'}} />
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-3">
             {pieData.map((d, i) => (
-              <div key={i} className="flex items-center justify-between text-xs">
+              <div key={i} className="flex items-center justify-between text-xs font-medium">
                 <span className="flex items-center text-slate-500">
-                  <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: d.color }}></span>
+                  <span className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: d.color }}></span>
                   {d.name}
                 </span>
-                <span className="font-bold">{d.value}</span>
+                <span className="font-bold text-slate-900">{d.value}</span>
               </div>
             ))}
           </div>
