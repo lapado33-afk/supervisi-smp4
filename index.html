@@ -27,6 +27,7 @@
             height: 100%;
             background-color: #f8fafc;
             font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
         }
         #root {
             display: flex;
@@ -40,43 +41,45 @@
             scrollbar-width: none;
         }
         @media print {
-            body { background: white; }
+            body { background: white !important; }
             .print-hidden { display: none !important; }
             #root { display: block !important; }
             aside { display: none !important; }
             header { display: none !important; }
             main { padding: 0 !important; margin: 0 !important; max-width: none !important; }
             .ml-72 { margin-left: 0 !important; }
+            .print-only { display: block !important; }
+        }
+        @media screen {
+            .print-only { display: none !important; }
         }
     </style>
     <script>
+      // Polyfill untuk library yang butuh global/process di browser
+      window.global = window;
       window.process = { 
         env: { 
-          NODE_ENV: 'production',
-          API_KEY: '' 
+          NODE_ENV: 'production'
         } 
       };
     </script>
-    <script type="importmap">
+<script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@19.0.0",
-    "react-dom": "https://esm.sh/react-dom@19.0.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "react/jsx-runtime": "https://esm.sh/react@19.0.0/jsx-runtime",
-    "@google/genai": "https://esm.sh/@google/genai@1.37.0",
-    "lucide-react": "https://esm.sh/lucide-react@0.462.0?external=react",
-    "recharts": "https://esm.sh/recharts@2.13.0?external=react,react-dom",
+    "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
     "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
   }
 }
 </script>
 </head>
-<body class="text-slate-900 overflow-x-hidden">
+<body class="text-slate-900">
     <div id="root"></div>
-    <script type="module" src="./index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
