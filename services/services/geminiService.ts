@@ -1,10 +1,22 @@
-
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Fungsi untuk inisialisasi AI secara aman
+const getAIClient = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    console.warn("API_KEY tidak ditemukan di environment variables.");
+    return null;
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export const generateCoachingAdvice = async (notes: string, focus: string) => {
   try {
+    const ai = getAIClient();
+    if (!ai) {
+      return "Konfigurasi AI belum lengkap (API Key kosong). Mohon hubungi admin.";
+    }
+
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `
@@ -15,17 +27,15 @@ export const generateCoachingAdvice = async (notes: string, focus: string) => {
         - Catatan Fakta: "${notes}"
         - Fokus Utama: "${focus}"
         
-        PRINSIP UTAMA (Sesuai Standar Proses 2026):
+        PRINSIP UTAMA:
         1. Berkesadaran (Motivasi & Mandiri)
         2. Bermakna (Konteks Nyata)
         3. Menggembirakan (Positif & Menyenangkan)
         
         INSTRUKSI OUTPUT:
-        - Gunakan Alur TIRTA (Tujuan, Identifikasi, Rencana Aksi, Tanggung Jawab).
-        - Nada bicara harus "Coaching" (menggali potensi), bukan "Supervisi" (menghukum).
-        - Berikan apresiasi pada apa yang sudah berjalan baik.
-        - Jika ada catatan perilaku negatif, ubah menjadi tantangan belajar untuk guru tersebut.
-        - Gunakan Bahasa Indonesia yang formal, hangat, dan menginspirasi.
+        - Gunakan Alur TIRTA.
+        - Nada bicara harus "Coaching" (menggali potensi).
+        - Gunakan Bahasa Indonesia yang formal dan hangat.
       `,
     });
     return response.text;
