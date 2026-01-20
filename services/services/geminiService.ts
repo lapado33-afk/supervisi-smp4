@@ -1,46 +1,36 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Fungsi untuk inisialisasi AI secara aman
-const getAIClient = () => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    console.warn("API_KEY tidak ditemukan di environment variables.");
-    return null;
-  }
-  return new GoogleGenAI({ apiKey });
-};
-
-export const generateCoachingAdvice = async (notes: string, focus: string) => {
+export const generateCoachingAdvice = async (notes: string, focusId: string) => {
   try {
-    const ai = getAIClient();
-    if (!ai) {
-      return "Konfigurasi AI belum lengkap (API Key kosong). Mohon hubungi admin.";
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      return "Error: API Key Gemini belum dikonfigurasi di Environment Variables Vercel.";
     }
+
+    const ai = new GoogleGenAI({ apiKey });
+    
+    // Mapping focusId ke teks deskriptif
+    const focusMap: Record<string, string> = {
+      '1': 'Manajemen Kelas (Suasana interaktif & menyenangkan)',
+      '2': 'Kualitas Instruksi (Pengalaman memahami & mengaplikasi)',
+      '3': 'Refleksi Pembelajaran (Evaluasi hasil belajar)'
+    };
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `
-        Bertindaklah sebagai Kepala Sekolah yang profesional dan suportif sesuai Panduan Pengelolaan Kinerja 2025.
-        Tugas Anda adalah memberikan umpan balik coaching untuk guru berdasarkan hasil observasi kelas.
-        
+        Bertindaklah sebagai Kepala Sekolah yang profesional. Berikan umpan balik coaching alur TIRTA.
         DATA OBSERVASI:
         - Catatan Fakta: "${notes}"
-        - Fokus Utama: "${focus}"
+        - Fokus Utama: "${focusMap[focusId] || 'Umum'}"
         
-        PRINSIP UTAMA:
-        1. Berkesadaran (Motivasi & Mandiri)
-        2. Bermakna (Konteks Nyata)
-        3. Menggembirakan (Positif & Menyenangkan)
-        
-        INSTRUKSI OUTPUT:
-        - Gunakan Alur TIRTA.
-        - Nada bicara harus "Coaching" (menggali potensi).
-        - Gunakan Bahasa Indonesia yang formal dan hangat.
+        Gunakan Bahasa Indonesia yang hangat dan motivatif. Berikan langkah konkret untuk perbaikan.
       `,
     });
-    return response.text;
+
+    return response.text || "Gagal mendapatkan saran dari AI.";
   } catch (error) {
-    console.error("Gemini Error:", error);
-    return "Maaf, sistem AI sedang padat. Silakan berikan umpan balik manual berdasarkan prinsip Standar Proses: Berkesadaran, Bermakna, dan Menggembirakan.";
+    console.error("Gemini API Error:", error);
+    return "Maaf, terjadi kendala saat menghubungi AI. Silakan gunakan umpan balik manual berdasarkan catatan observasi.";
   }
 };
