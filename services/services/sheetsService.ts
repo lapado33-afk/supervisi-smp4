@@ -12,7 +12,7 @@ export const cloudStorage = {
    * Mengambil data dari Google Sheets melalui API
    */
   async fetchAll(): Promise<ObservationData[]> {
-    if (GAS_WEB_APP_URL === 'MOHON_ISI_URL_WEB_APP_GAS_DI_SINI') {
+    if (GAS_WEB_APP_URL === 'https://script.google.com/macros/s/AKfycbyS0dStpD8KYwjU7i5lIVRKi8xVnRmBVCMRMtA4bxAtdsV9vHquyZ7HpMiE3n4xV_B0og/exec') {
       console.warn("GAS_WEB_APP_URL belum diisi. Menggunakan localStorage.");
       const saved = localStorage.getItem('supervision_data');
       return saved ? JSON.parse(saved) : [];
