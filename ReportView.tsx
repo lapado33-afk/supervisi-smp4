@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
-import { Download, FileText, Filter, Calendar, Users, Printer } from 'lucide-react';
+import { Download, Calendar, Users, Printer, Filter } from 'lucide-react';
 import { ObservationData, SupervisionStatus } from '../types';
 import { OBSERVATION_INDICATORS, TEACHERS } from '../constants';
 import PrintReport from './PrintReport';
@@ -23,36 +22,63 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
     };
   });
 
+  const exportToCSV = () => {
+    if (observations.length === 0) return alert("Tidak ada data untuk diunduh.");
+    
+    const headers = ["Nama Guru", "Mapel", "Tanggal", "Status", "Tujuan Pembelajaran", "RTL"];
+    const rows = observations.map(obs => {
+      const teacher = TEACHERS.find(t => t.id === obs.teacherId);
+      return [
+        `"${teacher?.name || 'Unknown'}"`,
+        `"${obs.subject || teacher?.subject || ''}"`,
+        `"${new Date(obs.date).toLocaleDateString('id-ID')}"`,
+        `"${obs.status}"`,
+        `"${(obs.learningGoals || '').replace(/"/g, '""')}"`,
+        `"${(obs.rtl || '').replace(/"/g, '""')}"`
+      ];
+    });
+
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Laporan_Supervisi_${new Date().toLocaleDateString()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handlePrint = (obs: ObservationData) => {
     setPrintData(obs);
-    // Delay sedikit agar React selesai merender komponen print sebelum memanggil window.print()
+    // Memberikan waktu render komponen print
     setTimeout(() => {
       window.print();
-      setPrintData(null);
-    }, 500);
+    }, 300);
   };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Container untuk Cetak (Hanya Muncul Saat Print) */}
-      <div className="hidden print:block fixed inset-0 z-[9999] bg-white">
+      {/* Komponen Print (Hanya muncul saat CTRL+P atau window.print) */}
+      <div className="hidden print:block">
         {printData && <PrintReport data={printData} principalName={principalName} />}
       </div>
 
-      <div className="flex items-center justify-between print:hidden">
+      <div className="flex items-center justify-between print-hidden">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Laporan & Analisis Sekolah</h2>
-          <p className="text-slate-500">Pemetaan kompetensi guru UPT SMPN 4 Mappedeceng.</p>
+          <h2 className="text-2xl font-bold text-slate-900">Laporan & Analisis</h2>
+          <p className="text-slate-500 text-sm">Analisis kompetensi pedagogik guru secara kolektif.</p>
         </div>
-        <div className="flex space-x-3">
-          <button className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95">
-            <Download size={18} />
-            <span>Unduh Semua Data (.CSV)</span>
-          </button>
-        </div>
+        <button 
+          onClick={exportToCSV}
+          className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95"
+        >
+          <Download size={18} />
+          <span>Unduh CSV</span>
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print:hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print-hidden">
         <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
           <h3 className="text-lg font-bold mb-6 flex items-center">
             <Users className="mr-2 text-blue-600" size={20} />
@@ -65,7 +91,7 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
                 <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#64748b' }} />
                 <PolarRadiusAxis hide />
                 <Radar
-                  name="Guru"
+                  name="Jumlah Guru"
                   dataKey="A"
                   stroke="#3b82f6"
                   fill="#3b82f6"
@@ -74,49 +100,49 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
               </RadarChart>
             </ResponsiveContainer>
           </div>
-          <p className="text-[10px] text-slate-400 mt-4 text-center">Grafik ini menunjukkan sebaran kompetensi guru berdasarkan hasil observasi.</p>
         </div>
 
         <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center">
-          <h3 className="text-lg font-bold mb-4">Ringkasan Capaian</h3>
+          <h3 className="text-lg font-bold mb-6">Ringkasan Status</h3>
           <div className="space-y-4">
-            <div className="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl">
-              <h4 className="text-emerald-900 font-bold text-sm mb-1">Guru Selesai Siklus</h4>
-              <p className="text-2xl font-black text-emerald-600">
-                {observations.filter(o => o.status === SupervisionStatus.FOLLOWED_UP).length} <span className="text-xs font-normal text-emerald-700">dari 15 Guru</span>
+            <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl">
+              <h4 className="text-emerald-900 font-bold text-sm mb-1">Selesai Siklus</h4>
+              <p className="text-3xl font-black text-emerald-600">
+                {observations.filter(o => o.status === SupervisionStatus.FOLLOWED_UP).length}
+                <span className="text-xs font-normal text-emerald-700 ml-2">Guru</span>
               </p>
             </div>
-            <div className="bg-amber-50 border border-amber-100 p-5 rounded-2xl">
-              <h4 className="text-amber-900 font-bold text-sm mb-1">Sedang Berlangsung</h4>
-              <p className="text-2xl font-black text-amber-600">
-                {observations.filter(o => o.status === SupervisionStatus.OBSERVED).length} <span className="text-xs font-normal text-amber-700">Menunggu Coaching</span>
+            <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl">
+              <h4 className="text-blue-900 font-bold text-sm mb-1">Total Observasi</h4>
+              <p className="text-3xl font-black text-blue-600">
+                {observations.length}
+                <span className="text-xs font-normal text-blue-700 ml-2">Catatan Terdata</span>
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden print:hidden">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden print-hidden">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-          <h3 className="text-lg font-bold">Riwayat Siklus Supervisi</h3>
+          <h3 className="text-lg font-bold">Riwayat Dokumen</h3>
           <div className="flex items-center text-xs text-slate-400 italic">
-            <Filter size={14} className="mr-1" /> Klik tombol "Cetak" untuk mengunduh dokumen resmi guru.
+            <Filter size={14} className="mr-1" /> Klik Cetak untuk mengunduh laporan individu.
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Guru</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tanggal</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Aksi Laporan</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Nama Guru</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Status</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {observations.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-16 text-center text-slate-400 italic text-sm">Belum ada data supervisi yang terekam.</td>
+                  <td colSpan={3} className="px-6 py-12 text-center text-slate-400 text-sm italic">Belum ada data tersedia.</td>
                 </tr>
               ) : (
                 observations.map((obs, i) => {
@@ -124,19 +150,12 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
                   return (
                     <tr key={i} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
-                        <p className="font-bold text-slate-900">{teacher?.name || 'Unknown'}</p>
-                        <p className="text-[10px] text-slate-500">{teacher?.subject}</p>
+                        <p className="font-bold text-slate-900 text-sm">{teacher?.name || 'Unknown'}</p>
+                        <p className="text-[10px] text-slate-500">{teacher?.subject} • {new Date(obs.date).toLocaleDateString('id-ID')}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center text-xs text-slate-600">
-                          <Calendar size={14} className="mr-2 text-slate-400" />
-                          {new Date(obs.date).toLocaleDateString('id-ID')}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase ${
-                          obs.status === SupervisionStatus.FOLLOWED_UP ? 'bg-emerald-100 text-emerald-700' : 
-                          obs.status === SupervisionStatus.OBSERVED ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
+                        <span className={`px-2 py-1 rounded-full text-[9px] font-bold uppercase ${
+                          obs.status === SupervisionStatus.FOLLOWED_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
                         }`}>
                           {obs.status}
                         </span>
@@ -144,10 +163,10 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
                       <td className="px-6 py-4 text-center">
                         <button 
                           onClick={() => handlePrint(obs)}
-                          className="inline-flex items-center space-x-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-[10px] font-bold hover:bg-slate-800 transition-all shadow-sm active:scale-95"
+                          className="inline-flex items-center space-x-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-800 transition-all shadow-sm active:scale-95"
                         >
                           <Printer size={14} />
-                          <span>CETAK LAPORAN</span>
+                          <span>CETAK</span>
                         </button>
                       </td>
                     </tr>
