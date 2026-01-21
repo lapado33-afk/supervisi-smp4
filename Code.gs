@@ -1,8 +1,13 @@
-
 /**
  * BACKEND API - SISTEM SUPERVISI AKADEMIK DIGITAL
  * UPT SMPN 4 MAPPEDECENG
- * ID Spreadsheet: 1bkZ4PYM_7LaPDv00dKfqKZdb8vGbZrOrCb3gLVPMQ-s
+ * 
+ * PETUNJUK PENTING:
+ * 1. Ganti SPREADSHEET_ID dengan ID Spreadsheet Anda sendiri (ada di URL Spreadsheet Anda).
+ * 2. Klik "Deploy" -> "New Deployment".
+ * 3. Pilih tipe "Web App".
+ * 4. "Execute as": Me (Email Anda).
+ * 5. "Who has access": Anyone (PENTING! Jika tidak, data tidak akan terkirim dari web).
  */
 
 const SPREADSHEET_ID = '1bkZ4PYM_7LaPDv00dKfqKZdb8vGbZrOrCb3gLVPMQ-s';
@@ -19,8 +24,7 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
   
-  // Default: Return status
-  return ContentService.createTextOutput(JSON.stringify({status: 'API Active'}))
+  return ContentService.createTextOutput(JSON.stringify({status: 'API Active', message: 'Gunakan parameter action=getObservations'}))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -29,6 +33,8 @@ function doGet(e) {
  */
 function doPost(e) {
   try {
+    // Karena kita mengirim dengan Content-Type: text/plain dari frontend, 
+    // datanya ada di e.postData.contents sebagai string JSON.
     const postData = JSON.parse(e.postData.contents);
     const result = saveObservationToCloud(postData);
     
@@ -77,6 +83,7 @@ function saveObservationToCloud(obsData) {
     const data = sheet.getDataRange().getValues();
     const teacherId = obsData.teacherId;
     
+    // Cari apakah data guru ini sudah ada sebelumnya (update) atau baru (append)
     const rowIndex = data.findIndex(row => row[0] == teacherId);
     const rowData = [
       obsData.teacherId,
@@ -93,8 +100,10 @@ function saveObservationToCloud(obsData) {
     ];
 
     if (rowIndex > -1) {
+      // Update baris yang ada
       sheet.getRange(rowIndex + 1, 1, 1, rowData.length).setValues([rowData]);
     } else {
+      // Tambah baris baru
       sheet.appendRow(rowData);
     }
     return { success: true };
