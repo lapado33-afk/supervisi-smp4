@@ -1,49 +1,32 @@
 /**
  * BACKEND API - SISTEM SUPERVISI AKADEMIK DIGITAL
  * UPT SMPN 4 MAPPEDECENG
- * 
- * PETUNJUK PENTING:
- * 1. Ganti SPREADSHEET_ID dengan ID Spreadsheet Anda sendiri (ada di URL Spreadsheet Anda).
- * 2. Klik "Deploy" -> "New Deployment".
- * 3. Pilih tipe "Web App".
- * 4. "Execute as": Me (Email Anda).
- * 5. "Who has access": Anyone (PENTING! Jika tidak, data tidak akan terkirim dari web).
  */
 
+// GANTI DENGAN ID SPREADSHEET ANDA!
 const SPREADSHEET_ID = '1bkZ4PYM_7LaPDv00dKfqKZdb8vGbZrOrCb3gLVPMQ-s';
 
-/**
- * Endpoint untuk menerima permintaan data (GET)
- */
 function doGet(e) {
   const action = e.parameter.action;
-  
   if (action === 'getObservations') {
-    const data = getObservationsFromCloud();
-    return ContentService.createTextOutput(JSON.stringify(data))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createJsonResponse(getObservationsFromCloud());
   }
-  
-  return ContentService.createTextOutput(JSON.stringify({status: 'API Active', message: 'Gunakan parameter action=getObservations'}))
-    .setMimeType(ContentService.MimeType.JSON);
+  return createJsonResponse({status: 'API Active'});
 }
 
-/**
- * Endpoint untuk menerima penyimpanan data (POST)
- */
 function doPost(e) {
   try {
-    // Karena kita mengirim dengan Content-Type: text/plain dari frontend, 
-    // datanya ada di e.postData.contents sebagai string JSON.
     const postData = JSON.parse(e.postData.contents);
     const result = saveObservationToCloud(postData);
-    
-    return ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createJsonResponse(result);
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({success: false, error: err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createJsonResponse({success: false, error: err.toString()});
   }
+}
+
+function createJsonResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function getSpreadsheet() {
@@ -62,18 +45,12 @@ function getObservationsFromCloud() {
       const obs = {};
       headers.forEach((header, index) => {
         if (header === 'indicators') {
-          try {
-            obs[header] = JSON.parse(row[index] || '{}');
-          } catch(e) { obs[header] = {}; }
-        } else {
-          obs[header] = row[index];
-        }
+          try { obs[header] = JSON.parse(row[index] || '{}'); } catch(e) { obs[header] = {}; }
+        } else { obs[header] = row[index]; }
       });
       return obs;
     });
-  } catch (e) {
-    return [];
-  }
+  } catch (e) { return []; }
 }
 
 function saveObservationToCloud(obsData) {
@@ -83,7 +60,6 @@ function saveObservationToCloud(obsData) {
     const data = sheet.getDataRange().getValues();
     const teacherId = obsData.teacherId;
     
-    // Cari apakah data guru ini sudah ada sebelumnya (update) atau baru (append)
     const rowIndex = data.findIndex(row => row[0] == teacherId);
     const rowData = [
       obsData.teacherId,
@@ -92,24 +68,20 @@ function saveObservationToCloud(obsData) {
       obsData.conversationTime,
       obsData.learningGoals,
       obsData.focusId,
-      JSON.stringify(obsData.indicators),
-      obsData.reflection,
-      obsData.coachingFeedback,
-      obsData.rtl,
+      JSON.stringify(obsData.indicators || {}),
+      obsData.reflection || '',
+      obsData.coachingFeedback || '',
+      obsData.rtl || '',
       obsData.status
     ];
 
     if (rowIndex > -1) {
-      // Update baris yang ada
       sheet.getRange(rowIndex + 1, 1, 1, rowData.length).setValues([rowData]);
     } else {
-      // Tambah baris baru
       sheet.appendRow(rowData);
     }
     return { success: true };
-  } catch (e) {
-    return { success: false, error: e.toString() };
-  }
+  } catch (e) { return { success: false, error: e.toString() }; }
 }
 
 function createSheetStructure(ss) {
