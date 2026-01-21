@@ -5,7 +5,7 @@ import { ObservationData } from '../types';
  * 1. Salin URL Web App dari Google Apps Script (Deploy > New Deployment).
  * 2. Pastikan 'Who has access' diset ke 'Anyone'.
  */
-const GAS_WEB_APP_URL = 'MOHON_ISI_URL_WEB_APP_GAS_DI_SINI';
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyUkh_NAjt5KdYmKJhyzJdecmWu9eebs7i6tprdDaY_r4tHho9r0wUl26czSy9UWwoYuw/exec';
 
 export const cloudStorage = {
   async fetchAll(): Promise<ObservationData[]> {
