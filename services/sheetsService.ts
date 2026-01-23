@@ -1,53 +1,58 @@
+
 import { ObservationData } from '../types';
 
 /**
- * PENTING:
- * 1. Salin URL Web App dari Google Apps Script (Deploy > New Deployment).
- * 2. Pastikan 'Who has access' diset ke 'Anyone'.
+ * PASTE URL BARU ANDA DI SINI
  */
-const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzC_sVC_b5u_T80sKWcjPG9WzD0HuQ07_BpHqjdKOEKk3eR0DEZaCJdNXBNs8VD2h1lbA/exec';
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwsPQMQp2QHdCijPQZO7roynGVxdJVuQV0TV9_n8WYzpW3pFIZpKLJNXu1yyLQpIkZGrA/exec'; 
 
 export const cloudStorage = {
   async fetchAll(): Promise<ObservationData[]> {
-    const localData = (): ObservationData[] => {
+    if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('NEW-URL-ID')) {
       const saved = localStorage.getItem('supervision_data');
       return saved ? JSON.parse(saved) : [];
-    };
-
-    if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('MOHON_ISI_URL')) {
-      return localData();
     }
 
     try {
       const response = await fetch(`${GAS_WEB_APP_URL}?action=getObservations`);
       const data = await response.json();
-      return Array.isArray(data) ? data : localData();
+      if (Array.isArray(data)) {
+        localStorage.setItem('supervision_data', JSON.stringify(data));
+        return data;
+      }
     } catch (err) {
-      console.error("Gagal sinkronisasi cloud:", err);
-      return localData();
+      console.error("Gagal fetch cloud:", err);
     }
+    const saved = localStorage.getItem('supervision_data');
+    return saved ? JSON.parse(saved) : [];
   },
 
   async save(data: ObservationData): Promise<void> {
-    // Simpan lokal dulu
+    // 1. Simpan Lokal
     const saved = localStorage.getItem('supervision_data');
-    const observations = saved ? JSON.parse(saved) : [];
-    const updated = [...observations.filter((o: any) => o.teacherId !== data.teacherId), data];
-    localStorage.setItem('supervision_data', JSON.stringify(updated));
+    let observations: ObservationData[] = saved ? JSON.parse(saved) : [];
+    const index = observations.findIndex(o => String(o.teacherId) === String(data.teacherId));
+    if (index > -1) {
+      observations[index] = data;
+    } else {
+      observations.push(data);
+    }
+    localStorage.setItem('supervision_data', JSON.stringify(observations));
 
-    if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('MOHON_ISI_URL')) return;
+    // 2. Kirim ke Cloud
+    if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('NEW-URL-ID')) return;
 
     try {
-      // Mengirim sebagai text/plain no-cors adalah cara paling stabil untuk Apps Script
+      // Gunakan mode no-cors untuk menghindari isu preflight
       await fetch(GAS_WEB_APP_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(data),
       });
-      console.log("Sinkronisasi cloud berjalan...");
+      console.log("Berhasil mengirim data ke antrean cloud.");
     } catch (err) {
-      console.error("Kesalahan koneksi cloud:", err);
+      console.error("Gagal kirim ke cloud:", err);
     }
   }
 };
