@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Upload, CheckCircle, Info, ChevronRight, FileText, BookOpen, Clock, Target, CreditCard } from 'lucide-react';
+import { Upload, CheckCircle, Info, ChevronRight, FileText, BookOpen, Clock, Target, CreditCard, CloudUpload } from 'lucide-react';
 import { TEACHERS, FOCUS_OPTIONS } from '../constants';
 import { ObservationData, SupervisionStatus } from '../types';
 
@@ -202,9 +203,9 @@ const PreObservation: React.FC<Props> = ({ onSave, principalNip }) => {
             className="bg-blue-600 text-white px-10 py-4 rounded-xl font-bold flex items-center space-x-2 hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95"
           >
             {isSaved ? (
-              <><CheckCircle size={20} /> <span>Perencanaan Tersimpan!</span></>
+              <><CheckCircle size={20} /> <span>Terkirim ke Cloud!</span></>
             ) : (
-              <><span>Simpan Perencanaan</span> <ChevronRight size={20} /></>
+              <><CloudUpload size={20} /> <span>Simpan & Kirim ke Spreadsheet</span> <ChevronRight size={20} /></>
             )}
           </button>
         </div>
