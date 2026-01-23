@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ObservationData } from '../types';
 import { TEACHERS, OBSERVATION_INDICATORS } from '../constants';
@@ -5,14 +6,14 @@ import { TEACHERS, OBSERVATION_INDICATORS } from '../constants';
 interface Props {
   data: ObservationData;
   principalName: string;
+  principalNip: string;
 }
 
-const PrintReport: React.FC<Props> = ({ data, principalName }) => {
-  // Gunakan ID yang dikonversi ke String untuk pencarian yang aman
+const PrintReport: React.FC<Props> = ({ data, principalName, principalNip }) => {
   const teacher = TEACHERS.find(t => String(t.id) === String(data.teacherId));
   const displayTeacherName = data.teacherName || teacher?.name || 'Guru Mata Pelajaran';
   const displayTeacherNip = data.teacherNip || teacher?.nip || '...........................';
-  const displayPrincipalNip = data.principalNip || '...........................';
+  const displayPrincipalNip = principalNip || data.principalNip || '...........................';
   
   const dateStr = new Date(data.date).toLocaleDateString('id-ID', { 
     weekday: 'long', 
@@ -44,6 +45,7 @@ const PrintReport: React.FC<Props> = ({ data, principalName }) => {
             <tr><td className="w-32 py-1 font-bold">NIP Guru</td><td className="w-4">:</td><td>{displayTeacherNip}</td></tr>
             <tr><td className="py-1 font-bold">Mata Pelajaran</td><td>:</td><td>{data.subject || teacher?.subject}</td></tr>
             <tr><td className="py-1 font-bold">Hari / Tanggal</td><td>:</td><td>{dateStr}</td></tr>
+            <tr><td className="py-1 font-bold">Jam / Waktu</td><td>:</td><td>{data.conversationTime || '-'} WITA</td></tr>
             <tr><td className="py-1 font-bold">Supervisor</td><td>:</td><td>{principalName}</td></tr>
           </tbody>
         </table>
