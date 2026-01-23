@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Save, AlertCircle, Camera, CheckCircle2, XCircle, MousePointer2 } from 'lucide-react';
 import { OBSERVATION_INDICATORS, TEACHERS } from '../constants';
@@ -66,6 +65,8 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
       teacherId,
       // Pastikan Nama Guru diambil dari referensi utama (TEACHERS)
       teacherName: teacherRef?.name || existingData?.teacherName || 'Guru',
+      teacherNip: existingData?.teacherNip || teacherRef?.nip || '',
+      principalNip: existingData?.principalNip || '',
       date: existingData?.date || new Date().toISOString(),
       subject: existingData?.subject || teacherRef?.subject || '',
       conversationTime: existingData?.conversationTime || '',
