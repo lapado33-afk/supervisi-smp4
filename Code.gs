@@ -60,9 +60,15 @@ function saveObservationToCloud(obsData) {
     const data = sheet.getDataRange().getValues();
     const teacherId = obsData.teacherId;
     
+    // Cari baris jika sudah ada (berdasarkan ID Guru)
     const rowIndex = data.findIndex(row => row[0] == teacherId);
+    
+    // Susunan kolom: teacherId, teacherName, teacherNip, principalNip, date, subject, conversationTime, learningGoals, focusId, indicators, reflection, coachingFeedback, rtl, status
     const rowData = [
       obsData.teacherId,
+      obsData.teacherName || '',
+      obsData.teacherNip || '',
+      obsData.principalNip || '',
       obsData.date,
       obsData.subject,
       obsData.conversationTime,
@@ -86,10 +92,26 @@ function saveObservationToCloud(obsData) {
 
 function createSheetStructure(ss) {
   let sheet = ss.getSheetByName('Observasi');
+  if (sheet) {
+    // Jika sheet sudah ada tapi kolom nama belum ada atau struktur lama, sesuaikan.
+    const headers = sheet.getRange(1, 1, 1, 3).getValues()[0];
+    if (headers[2] !== 'teacherNip') {
+       ss.deleteSheet(sheet);
+       sheet = null;
+    }
+  }
+  
   if (!sheet) {
     sheet = ss.insertSheet('Observasi');
-    const headers = ['teacherId', 'date', 'subject', 'conversationTime', 'learningGoals', 'focusId', 'indicators', 'reflection', 'coachingFeedback', 'rtl', 'status'];
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#f3f4f6');
+    const headers = [
+      'teacherId', 'teacherName', 'teacherNip', 'principalNip', 'date', 'subject', 'conversationTime', 
+      'learningGoals', 'focusId', 'indicators', 'reflection', 
+      'coachingFeedback', 'rtl', 'status'
+    ];
+    sheet.getRange(1, 1, 1, headers.length)
+         .setValues([headers])
+         .setFontWeight('bold')
+         .setBackground('#f3f4f6');
     sheet.setFrozenRows(1);
   }
   return sheet;
