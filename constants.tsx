@@ -1,4 +1,3 @@
-
 import { ObservationFocus, Teacher } from './types';
 
 export interface ObservationIndicator {
@@ -118,21 +117,21 @@ export const OBSERVATION_INDICATORS: ObservationIndicator[] = [
 ];
 
 export const TEACHERS: Teacher[] = [
-  { id: '1', name: 'Mariati,S.Ag', subject: 'Pendidikan Agama Islam', phase: 'Fase D' },
-  { id: '2', name: 'Selviyani,S.PDH', subject: 'Pendidikan Agama Hindu', phase: 'Fase D' },
-  { id: '3', name: 'Nur Izzah,S.Pd', subject: 'PKn', phase: 'Fase D' },
-  { id: '4', name: 'N.Rahmat,S.Pd', subject: 'Bahasa Indonesia', phase: 'Fase D' },
-  { id: '5', name: 'Nurbaya,S.Pd', subject: 'Matematika', phase: 'Fase D' },
-  { id: '6', name: 'Jannatul Makwah Abuhair,S.Pd', subject: 'IPA', phase: 'Fase D' },
-  { id: '7', name: 'Hasan Pasanjeran,S.Pd', subject: 'IPS', phase: 'Fase D' },
-  { id: '8', name: 'Rini Verawati,S.Pd', subject: 'Bahasa Inggris', phase: 'Fase D' },
-  { id: '9', name: 'Lapado,S.Pd', subject: 'Bahasa Inggris', phase: 'Fase E' },
-  { id: '10', name: 'Sudrajat R,S.Pd', subject: 'PJOK', phase: 'Fase D' },
-  { id: '11', name: 'Kevin,S.Pd', subject: 'Informatika', phase: 'Fase D' },
-  { id: '12', name: 'Darmawati,S.Pd', subject: 'Ekonomi', phase: 'Fase D' },
-  { id: '13', name: 'RINI,S.Pd', subject: 'Bahasa Indonesia', phase: 'Fase D' },
-  { id: '14', name: 'Jamiluddin,SE', subject: 'IPS', phase: 'Fase D' },
-  { id: '15', name: 'Kartini Apriani,S.Pd', subject: 'Matematika', phase: 'Fase D' },
+  { id: '1', name: 'Mariati,S.Ag', nip: '197503122005012008', subject: 'Pendidikan Agama Islam', phase: 'Fase D' },
+  { id: '2', name: 'Selviyani,S.PDH', nip: '198205152010012015', subject: 'Pendidikan Agama Hindu', phase: 'Fase D' },
+  { id: '3', name: 'Nur Izzah,S.Pd', nip: '198808202015032002', subject: 'PKn', phase: 'Fase D' },
+  { id: '4', name: 'N.Rahmat,S.Pd', nip: '197001011995121001', subject: 'Bahasa Indonesia', phase: 'Fase D' },
+  { id: '5', name: 'Nurbaya,S.Pd', nip: '197204051998032004', subject: 'Matematika', phase: 'Fase D' },
+  { id: '6', name: 'Jannatul Makwah Abuhair,S.Pd', nip: '199011122019032011', subject: 'IPA', phase: 'Fase D' },
+  { id: '7', name: 'Hasan Pasanjeran,S.Pd', nip: '197806142006041009', subject: 'IPS', phase: 'Fase D' },
+  { id: '8', name: 'Rini Verawati,S.Pd', nip: '198502282009022003', subject: 'Bahasa Inggris', phase: 'Fase D' },
+  { id: '9', name: 'Lapado,S.Pd', nip: '196809101992031005', subject: 'Bahasa Inggris', phase: 'Fase E' },
+  { id: '10', name: 'Sudrajat R,S.Pd', nip: '198001012005011002', subject: 'PJOK', phase: 'Fase D' },
+  { id: '11', name: 'Kevin,S.Pd', nip: '199505052022031001', subject: 'Informatika', phase: 'Fase D' },
+  { id: '12', name: 'Darmawati,S.Pd', nip: '197607072007012006', subject: 'Ekonomi', phase: 'Fase D' },
+  { id: '13', name: 'RINI,S.Pd', nip: '198812122015032005', subject: 'Bahasa Indonesia', phase: 'Fase D' },
+  { id: '14', name: 'Jamiluddin,SE', nip: '197403032006041007', subject: 'IPS', phase: 'Fase D' },
+  { id: '15', name: 'Kartini Apriani,S.Pd', nip: '199204042019032008', subject: 'Matematika', phase: 'Fase D' },
 ];
 
 export const FOCUS_OPTIONS: ObservationFocus[] = [
