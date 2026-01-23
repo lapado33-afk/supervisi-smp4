@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Sparkles, MessageCircle, RefreshCcw, Check, Clock, History, AlertCircle, MousePointer2, ListChecks, Lightbulb } from 'lucide-react';
 import { ObservationData, SupervisionStatus } from '../types';
@@ -85,6 +84,8 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
     const updated: ObservationData = {
       ...selectedObs,
       teacherName: teacherRef?.name || selectedObs.teacherName || 'Guru',
+      teacherNip: selectedObs.teacherNip || teacherRef?.nip || '',
+      principalNip: selectedObs.principalNip || '',
       reflection,
       coachingFeedback: feedback,
       rtl,
