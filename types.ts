@@ -1,4 +1,3 @@
-
 export enum SupervisionStatus {
   PLANNED = 'Terjadwal',
   OBSERVED = 'Sudah Diobservasi',
@@ -8,6 +7,7 @@ export enum SupervisionStatus {
 export interface Teacher {
   id: string;
   name: string;
+  nip?: string;
   subject: string;
   phase: string;
 }
@@ -20,10 +20,13 @@ export interface ObservationFocus {
 
 export interface ObservationData {
   teacherId: string;
+  teacherName: string;
+  teacherNip: string; // Tambahan NIP Guru
+  principalNip: string; // Tambahan NIP Kepala Sekolah
   date: string;
-  subject: string; // Tambahan baru
-  conversationTime: string; // Tambahan baru
-  learningGoals: string; // Tambahan baru
+  subject: string;
+  conversationTime: string;
+  learningGoals: string;
   focusId: string;
   indicators: {
     [key: string]: {
