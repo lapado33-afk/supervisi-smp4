@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, Camera, CheckCircle2, XCircle, MousePointer2 } from 'lucide-react';
+import { Save, AlertCircle, Camera, CheckCircle2, XCircle, MousePointer2, CloudUpload } from 'lucide-react';
 import { OBSERVATION_INDICATORS, TEACHERS } from '../constants';
 import { ObservationData, SupervisionStatus } from '../types';
 
@@ -197,10 +198,10 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
             </div>
             <div className="max-w-xs">
               <p className="text-xs text-slate-800 font-black leading-tight">
-                Simpan Hasil Observasi
+                Simpan & Kirim ke Spreadsheet
               </p>
               <p className="text-[10px] text-slate-500 font-medium">
-                Pastikan semua catatan sudah sesuai sebelum mengklik tombol simpan.
+                Data akan tersimpan secara lokal dan otomatis dikirim ke cloud.
               </p>
             </div>
           </div>
@@ -209,9 +210,9 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
             className="bg-blue-600 text-white px-12 py-5 rounded-2xl font-bold flex items-center space-x-3 hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all active:scale-95 w-full md:w-auto justify-center"
           >
             {showConfirm ? (
-              <><span>Berhasil Disimpan!</span></>
+              <><span>Data Terkirim!</span></>
             ) : (
-              <><Save size={20} /> <span>Simpan & Selesaikan</span></>
+              <><CloudUpload size={20} /> <span>Simpan & Kirim</span></>
             )}
           </button>
         </div>
