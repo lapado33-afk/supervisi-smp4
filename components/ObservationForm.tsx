@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Save, AlertCircle, Camera, CheckCircle2, XCircle, MousePointer2 } from 'lucide-react';
 import { OBSERVATION_INDICATORS, TEACHERS } from '../constants';
@@ -13,10 +14,9 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
   const [indicators, setIndicators] = useState<{[key: string]: {checked: boolean, note: string}}>({});
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Auto-load data jika guru sudah pernah diobservasi atau sudah dijadwalkan
   useEffect(() => {
     if (teacherId) {
-      const existing = observations.find(o => o.teacherId === teacherId);
+      const existing = observations.find(o => String(o.teacherId) === String(teacherId));
       if (existing && existing.indicators) {
         setIndicators(existing.indicators);
       } else {
@@ -58,20 +58,23 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
   const handleSave = () => {
     if (!teacherId) return alert('Pilih guru terlebih dahulu!');
     
-    const existing = observations.find(o => o.teacherId === teacherId);
-    const teacher = TEACHERS.find(t => t.id === teacherId);
+    // Ambil data referensi guru dari konstanta agar nama AKURAT
+    const teacherRef = TEACHERS.find(t => String(t.id) === String(teacherId));
+    const existingData = observations.find(o => String(o.teacherId) === String(teacherId));
 
     const data: ObservationData = {
       teacherId,
-      date: existing?.date || new Date().toISOString(),
-      subject: existing?.subject || teacher?.subject || '',
-      conversationTime: existing?.conversationTime || '',
-      learningGoals: existing?.learningGoals || '',
-      focusId: existing?.focusId || '1', 
+      // Pastikan Nama Guru diambil dari referensi utama (TEACHERS)
+      teacherName: teacherRef?.name || existingData?.teacherName || 'Guru',
+      date: existingData?.date || new Date().toISOString(),
+      subject: existingData?.subject || teacherRef?.subject || '',
+      conversationTime: existingData?.conversationTime || '',
+      learningGoals: existingData?.learningGoals || '',
+      focusId: existingData?.focusId || '1', 
       indicators,
-      reflection: existing?.reflection || '',
-      coachingFeedback: existing?.coachingFeedback || '',
-      rtl: existing?.rtl || '',
+      reflection: existingData?.reflection || '',
+      coachingFeedback: existingData?.coachingFeedback || '',
+      rtl: existingData?.rtl || '',
       status: SupervisionStatus.OBSERVED
     };
 
@@ -81,35 +84,35 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
   };
 
   return (
-    <div className="space-y-8 tab-content-enter pb-24">
+    <div className="space-y-8 animate-in duration-500 pb-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Pelaksanaan Observasi Kelas</h2>
-          <p className="text-slate-500 text-sm">Berdasarkan Standar Proses (Permendikdasmen No. 1 Tahun 2026)</p>
+          <p className="text-slate-500 text-sm font-medium">Berdasarkan Standar Proses (Permendikdasmen No. 1 Tahun 2026)</p>
         </div>
         
         <div className="flex items-center space-x-3">
            <select 
             value={teacherId}
             onChange={(e) => setTeacherId(e.target.value)}
-            className="bg-white border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 font-bold text-blue-600 outline-none"
+            className="bg-white border border-slate-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 font-bold text-blue-600 outline-none shadow-sm"
           >
             <option value="">-- Sedang Diobservasi --</option>
             {TEACHERS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
-          <button className="bg-slate-100 p-3 rounded-xl text-slate-600 hover:bg-slate-200 transition-all">
+          <button className="bg-slate-100 p-3 rounded-xl text-slate-600 hover:bg-slate-200 transition-all shadow-sm">
             <Camera size={20} />
           </button>
         </div>
       </div>
 
       {!teacherId ? (
-        <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] py-20 flex flex-col items-center justify-center text-center">
-          <div className="bg-blue-50 text-blue-500 p-6 rounded-full mb-4">
+        <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] py-24 flex flex-col items-center justify-center text-center px-6">
+          <div className="bg-blue-50 text-blue-500 p-8 rounded-full mb-6">
             <MousePointer2 size={48} />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">Pilih Guru untuk Memulai</h3>
-          <p className="text-slate-500 text-sm max-w-xs mt-2">Pilih nama guru yang sedang Anda observasi di pojok kanan atas.</p>
+          <h3 className="text-xl font-bold text-slate-900">Pilih Guru untuk Memulai</h3>
+          <p className="text-slate-500 text-sm max-w-xs mt-2">Silakan pilih nama guru yang sedang Anda observasi di pojok kanan atas untuk mengisi instrumen.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-8">
@@ -119,19 +122,19 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
                 <div className="flex-1 space-y-4">
                   <div className="flex items-center space-x-3">
                     <h4 className="font-bold text-lg text-slate-900">{indicator.label}</h4>
-                    <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Standar Proses 2026</span>
+                    <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Standar 2026</span>
                   </div>
-                  <p className="text-sm text-slate-600 italic">"{indicator.desc}"</p>
+                  <p className="text-sm text-slate-600 italic leading-relaxed">"{indicator.desc}"</p>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
                     <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
-                      <div className="flex items-center text-emerald-700 font-bold text-[10px] mb-2 uppercase">
+                      <div className="flex items-center text-emerald-700 font-black text-[10px] mb-2 uppercase tracking-widest">
                         <CheckCircle2 size={12} className="mr-1" /> Dianjurkan
                       </div>
                       <p className="text-[11px] text-emerald-800 leading-relaxed font-medium">{indicator.dianjurkan}</p>
                     </div>
                     <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100">
-                      <div className="flex items-center text-rose-700 font-bold text-[10px] mb-2 uppercase">
+                      <div className="flex items-center text-rose-700 font-black text-[10px] mb-2 uppercase tracking-widest">
                         <XCircle size={12} className="mr-1" /> Dihindari
                       </div>
                       <p className="text-[11px] text-rose-800 leading-relaxed font-medium">{indicator.dihindari}</p>
@@ -147,14 +150,14 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
                           : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      {indicators[indicator.id]?.checked ? 'Berhasil Muncul' : 'Belum Terlihat'}
+                      {indicators[indicator.id]?.checked ? <><CheckCircle2 size={18} /> <span>Berhasil Muncul</span></> : 'Belum Terlihat'}
                     </button>
                   </div>
                 </div>
 
                 <div className="flex-1 space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center">
                       <MousePointer2 size={12} className="mr-2 text-blue-500" /> Pilih Temuan Cepat:
                     </label>
                     <div className="flex flex-wrap gap-2 mb-4">
@@ -193,10 +196,10 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
             </div>
             <div className="max-w-xs">
               <p className="text-xs text-slate-800 font-black leading-tight">
-                Simpan Secara Berkala
+                Simpan Hasil Observasi
               </p>
               <p className="text-[10px] text-slate-500 font-medium">
-                Data akan tersinkronisasi ke cloud dan tersimpan di memori lokal.
+                Pastikan semua catatan sudah sesuai sebelum mengklik tombol simpan.
               </p>
             </div>
           </div>
