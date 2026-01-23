@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Sparkles, MessageCircle, RefreshCcw, Check, Clock, History, AlertCircle, MousePointer2, ListChecks, Lightbulb } from 'lucide-react';
+import { Sparkles, MessageCircle, RefreshCcw, Check, Clock, History, AlertCircle, MousePointer2, ListChecks, Lightbulb, CloudUpload } from 'lucide-react';
 import { ObservationData, SupervisionStatus } from '../types';
 import { TEACHERS, FOCUS_OPTIONS } from '../constants';
 import { generateCoachingAdvice } from '../services/geminiService';
@@ -287,8 +288,8 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
                 onClick={handleSave}
                 className="bg-emerald-600 text-white px-10 py-5 rounded-2xl font-bold flex items-center space-x-2 hover:bg-emerald-700 shadow-xl shadow-emerald-200 transition-all active:scale-95"
               >
-                <Check size={20} />
-                <span>Simpan & Selesaikan Siklus</span>
+                <CloudUpload size={20} />
+                <span>Simpan & Kirim ke Spreadsheet</span>
               </button>
             </div>
           </div>
