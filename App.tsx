@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
@@ -11,7 +12,8 @@ import {
   ChevronRight,
   Plus,
   Calendar,
-  Cloud
+  Cloud,
+  Send
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import PreObservation from './components/PreObservation';
@@ -57,6 +59,23 @@ const App: React.FC = () => {
       await cloudStorage.save(data);
     } catch (err) {
       console.error("Gagal menyimpan ke cloud:", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleManualSync = async () => {
+    if (observations.length === 0) return alert("Tidak ada data untuk dikirim.");
+    
+    setIsSyncing(true);
+    try {
+      // Mengirim ulang semua data lokal ke cloud untuk memastikan sinkronisasi
+      for (const obs of observations) {
+        await cloudStorage.save(obs);
+      }
+      alert("Semua data berhasil dikirim ke Spreadsheet!");
+    } catch (err) {
+      alert("Gagal sinkronisasi: " + err);
     } finally {
       setIsSyncing(false);
     }
@@ -118,10 +137,15 @@ const App: React.FC = () => {
         </nav>
 
         <div className="p-6 border-t border-slate-100">
-          <div className={`flex items-center space-x-3 px-4 py-3 rounded-xl mb-4 ${isSyncing ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>
-            <Cloud size={16} className={isSyncing ? 'animate-pulse' : ''} />
-            <span className="text-xs font-bold uppercase tracking-wider">{isSyncing ? 'Sinkronisasi...' : 'Tersambung Cloud'}</span>
-          </div>
+          <button 
+            onClick={handleManualSync}
+            disabled={isSyncing}
+            className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl mb-4 transition-all ${isSyncing ? 'bg-amber-100 text-amber-600' : 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 active:scale-95'}`}
+          >
+            {isSyncing ? <Cloud size={16} className="animate-pulse" /> : <Send size={16} />}
+            <span className="text-xs font-bold uppercase tracking-wider">{isSyncing ? 'Mengirim...' : 'Kirim ke Spreadsheet'}</span>
+          </button>
+          
           <div className="px-4 py-2 space-y-2">
              <label className="text-[9px] font-bold text-slate-400 uppercase">NIP Kepala Sekolah</label>
              <input 
