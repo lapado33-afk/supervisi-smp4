@@ -26,10 +26,11 @@ const App: React.FC = () => {
   const [observations, setObservations] = useState<ObservationData[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   
-  const [principal] = useState({
+  const [principal, setPrincipal] = useState({
     name: 'Ikhbariyati Mahrunnisa, S.Pd, Gr',
+    nip: '198501012010012001', // NIP Default Kepala Sekolah
     role: 'Kepala Sekolah',
-    photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ikhbariyati' // Fallback avatar stabil
+    photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ikhbariyati'
   });
 
   useEffect(() => {
@@ -78,10 +79,10 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <Dashboard observations={observations} />;
-      case 'pra': return <PreObservation onSave={updateObservations} />;
+      case 'pra': return <PreObservation onSave={updateObservations} principalNip={principal.nip} />;
       case 'observasi': return <ObservationForm observations={observations} onSave={updateObservations} />;
       case 'pasca': return <PostObservation observations={observations} onSave={updateObservations} />;
-      case 'laporan': return <ReportView observations={observations} principalName={principal.name} />;
+      case 'laporan': return <ReportView observations={observations} principalName={principal.name} principalNip={principal.nip} />;
       default: return <Dashboard observations={observations} />;
     }
   };
@@ -121,7 +122,17 @@ const App: React.FC = () => {
             <Cloud size={16} className={isSyncing ? 'animate-pulse' : ''} />
             <span className="text-xs font-bold uppercase tracking-wider">{isSyncing ? 'Sinkronisasi...' : 'Tersambung Cloud'}</span>
           </div>
-          <button className="flex items-center space-x-3 w-full px-4 py-2 text-slate-400 hover:text-slate-900 transition-colors">
+          <div className="px-4 py-2 space-y-2">
+             <label className="text-[9px] font-bold text-slate-400 uppercase">NIP Kepala Sekolah</label>
+             <input 
+               type="text" 
+               value={principal.nip}
+               onChange={(e) => setPrincipal({...principal, nip: e.target.value})}
+               className="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500"
+               placeholder="Masukkan NIP"
+             />
+          </div>
+          <button className="flex items-center space-x-3 w-full px-4 py-2 text-slate-400 hover:text-slate-900 transition-colors mt-2">
             <Settings size={18} />
             <span className="text-sm font-medium">Pengaturan</span>
           </button>
