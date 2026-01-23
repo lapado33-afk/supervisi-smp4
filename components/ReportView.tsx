@@ -8,9 +8,10 @@ import PrintReport from './PrintReport';
 interface Props {
   observations: ObservationData[];
   principalName: string;
+  principalNip: string;
 }
 
-const ReportView: React.FC<Props> = ({ observations, principalName }) => {
+const ReportView: React.FC<Props> = ({ observations, principalName, principalNip }) => {
   const [printData, setPrintData] = useState<ObservationData | null>(null);
 
   const radarData = OBSERVATION_INDICATORS.map(ind => {
@@ -25,14 +26,17 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
   const exportToCSV = () => {
     if (observations.length === 0) return alert("Tidak ada data untuk diunduh.");
     
-    // Header CSV
-    const headers = ["Nama Guru", "Mata Pelajaran", "Tanggal Observasi", "Status", "Tujuan Pembelajaran", "Rencana Tindak Lanjut"];
+    const headers = ["Nama Guru", "NIP Guru", "Mata Pelajaran", "Tanggal Observasi", "Status", "Tujuan Pembelajaran", "Rencana Tindak Lanjut"];
     
-    // Data Rows
     const rows = observations.map(obs => {
-      const teacher = TEACHERS.find(t => t.id === obs.teacherId);
+      // Prioritaskan teacherName dari data, atau cari di TEACHERS
+      const teacher = TEACHERS.find(t => String(t.id) === String(obs.teacherId));
+      const teacherName = obs.teacherName || teacher?.name || 'Guru';
+      const teacherNip = obs.teacherNip || teacher?.nip || '';
+      
       return [
-        `"${teacher?.name || 'Unknown'}"`,
+        `"${teacherName}"`,
+        `"${teacherNip}"`,
         `"${obs.subject || teacher?.subject || ''}"`,
         `"${new Date(obs.date).toLocaleDateString('id-ID')}"`,
         `"${obs.status}"`,
@@ -54,7 +58,6 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
 
   const handlePrint = (obs: ObservationData) => {
     setPrintData(obs);
-    // Tunggu render selesai baru cetak
     setTimeout(() => {
       window.print();
     }, 500);
@@ -62,7 +65,6 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
 
   return (
     <div className="space-y-8 animate-in duration-500">
-      {/* Container Khusus Cetak (Hanya terlihat saat print) */}
       <div className="print-only">
         {printData && <PrintReport data={printData} principalName={principalName} />}
       </div>
@@ -70,11 +72,11 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
       <div className="flex items-center justify-between print-hidden">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Laporan & Analisis</h2>
-          <p className="text-slate-500 text-sm">Analisis kompetensi pedagogik guru SMPN 4 Mappedeceng.</p>
+          <p className="text-slate-500 text-sm font-medium">Analisis kompetensi pedagogik guru SMPN 4 Mappedeceng.</p>
         </div>
         <button 
           onClick={exportToCSV}
-          className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-blue-700 shadow-xl shadow-blue-100 transition-all active:scale-95"
+          className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-100 transition-all active:scale-95"
         >
           <Download size={18} />
           <span>Unduh CSV</span>
@@ -84,14 +86,14 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print-hidden">
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
           <h3 className="text-lg font-bold mb-6 flex items-center">
-            <Users className="mr-2 text-blue-600" size={20} />
+            <Users className="mr-3 text-blue-600" size={20} />
             Peta Kekuatan Pembelajaran
           </h3>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                 <PolarGrid stroke="#e2e8f0" />
-                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} />
+                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 9, fill: '#64748b', fontWeight: '800' }} />
                 <PolarRadiusAxis angle={30} domain={[0, Math.max(observations.length, 5)]} hide />
                 <Radar
                   name="Jumlah Guru"
@@ -110,17 +112,17 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
           <h3 className="text-lg font-bold mb-6">Ringkasan Status Progres</h3>
           <div className="space-y-6">
             <div className="bg-emerald-50 border border-emerald-100 p-8 rounded-3xl">
-              <h4 className="text-emerald-900 font-bold text-sm mb-1 uppercase tracking-wider">Selesai Siklus</h4>
+              <h4 className="text-emerald-900 font-bold text-xs mb-2 uppercase tracking-widest">Selesai Siklus</h4>
               <p className="text-4xl font-black text-emerald-600">
                 {observations.filter(o => o.status === SupervisionStatus.FOLLOWED_UP).length}
-                <span className="text-xs font-normal text-emerald-700 ml-2">Guru Terverifikasi</span>
+                <span className="text-xs font-bold text-emerald-700 ml-3">Guru</span>
               </p>
             </div>
             <div className="bg-blue-50 border border-blue-100 p-8 rounded-3xl">
-              <h4 className="text-blue-900 font-bold text-sm mb-1 uppercase tracking-wider">Total Observasi</h4>
+              <h4 className="text-blue-900 font-bold text-xs mb-2 uppercase tracking-widest">Total Observasi</h4>
               <p className="text-4xl font-black text-blue-600">
                 {observations.length}
-                <span className="text-xs font-normal text-blue-700 ml-2">Dokumen Terarsip</span>
+                <span className="text-xs font-bold text-blue-700 ml-3">Dokumen</span>
               </p>
             </div>
           </div>
@@ -130,8 +132,8 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
       <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden print-hidden">
         <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <h3 className="text-lg font-bold">Riwayat Dokumen Supervisi</h3>
-          <div className="flex items-center text-xs text-slate-400 font-medium">
-            <Filter size={14} className="mr-2" /> Klik "CETAK" untuk laporan individu (A4)
+          <div className="flex items-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+            <Filter size={14} className="mr-2" /> Klik "CETAK" untuk laporan individu
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -146,22 +148,24 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
             <tbody className="divide-y divide-slate-100">
               {observations.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-8 py-20 text-center text-slate-400 text-sm italic">Belum ada data observasi yang tersimpan.</td>
+                  <td colSpan={3} className="px-8 py-20 text-center text-slate-400 text-sm italic">Belum ada data yang tersimpan di cloud.</td>
                 </tr>
               ) : (
                 observations.map((obs, i) => {
-                  const teacher = TEACHERS.find(t => t.id === obs.teacherId);
+                  const teacher = TEACHERS.find(t => String(t.id) === String(obs.teacherId));
+                  const nameToDisplay = obs.teacherName || teacher?.name || 'Guru';
+                  
                   return (
                     <tr key={i} className="hover:bg-blue-50/30 transition-colors group">
                       <td className="px-8 py-6">
-                        <p className="font-bold text-slate-900 text-sm">{teacher?.name || 'Guru'}</p>
-                        <p className="text-[11px] text-slate-500 font-medium uppercase">{teacher?.subject} • {new Date(obs.date).toLocaleDateString('id-ID')}</p>
+                        <p className="font-bold text-slate-900 text-sm">{nameToDisplay}</p>
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-wider">{obs.subject} • {new Date(obs.date).toLocaleDateString('id-ID')}</p>
                       </td>
                       <td className="px-8 py-6">
-                        <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${
                           obs.status === SupervisionStatus.FOLLOWED_UP 
-                          ? 'bg-emerald-100 text-emerald-700' 
-                          : 'bg-blue-100 text-blue-700'
+                          ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                          : 'bg-blue-100 text-blue-700 border border-blue-200'
                         }`}>
                           {obs.status}
                         </span>
@@ -169,7 +173,7 @@ const ReportView: React.FC<Props> = ({ observations, principalName }) => {
                       <td className="px-8 py-6 text-center">
                         <button 
                           onClick={() => handlePrint(obs)}
-                          className="inline-flex items-center space-x-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-blue-600 transition-all shadow-md active:scale-95"
+                          className="inline-flex items-center space-x-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] hover:bg-blue-600 transition-all shadow-md active:scale-95"
                         >
                           <Printer size={14} />
                           <span>CETAK</span>
