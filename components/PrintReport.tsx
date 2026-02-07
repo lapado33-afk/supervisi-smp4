@@ -54,16 +54,30 @@ const PrintReport: React.FC<Props> = ({ data, principalName, principalNip }) => 
       {/* PRA-OBSERVASI */}
       <div className="mb-6">
         <h4 className="bg-gray-100 p-1 font-bold border-l-4 border-black mb-2 uppercase text-[9px]">I. CATATAN PRA-OBSERVASI</h4>
-        <div className="pl-2">
-          <p className="font-bold underline text-[9px] mb-1">Tujuan Pembelajaran:</p>
-          <p className="text-[10px] mb-2 leading-normal">{data.learningGoals || '-'}</p>
+        <div className="pl-2 space-y-3">
+          <div>
+            <p className="font-bold underline text-[9px] mb-1">Tujuan Pembelajaran:</p>
+            <p className="text-[10px] mb-2 leading-normal">{data.learningGoals || '-'}</p>
+          </div>
+          <div>
+            <p className="font-bold underline text-[9px] mb-1">Area Pengembangan yang Hendak Dicapai:</p>
+            <p className="text-[10px] mb-2 leading-normal">{data.developmentArea || '-'}</p>
+          </div>
+          <div>
+            <p className="font-bold underline text-[9px] mb-1">Strategi / Metode yang Dipersiapkan:</p>
+            <p className="text-[10px] mb-2 leading-normal">{data.strategy || '-'}</p>
+          </div>
+          <div>
+            <p className="font-bold underline text-[9px] mb-1">Catatan Khusus Supervisor:</p>
+            <p className="text-[10px] mb-2 leading-normal italic">{data.supervisorNotes || '-'}</p>
+          </div>
         </div>
       </div>
 
       {/* OBSERVASI TABLE */}
       <div className="mb-6">
         <h4 className="bg-gray-100 p-1 font-bold border-l-4 border-black mb-2 uppercase text-[9px]">II. OBSERVASI PEMBELAJARAN</h4>
-        <table className="w-full border-collapse border border-black text-[9px]">
+        <table className="w-full border-collapse border border-black text-[9px] mb-4">
           <thead>
             <tr className="bg-gray-50">
               <th className="border border-black p-1.5 w-8">No</th>
@@ -87,6 +101,12 @@ const PrintReport: React.FC<Props> = ({ data, principalName, principalNip }) => 
             ))}
           </tbody>
         </table>
+        {data.additionalNotes && (
+          <div className="pl-2">
+            <p className="font-bold underline text-[9px] mb-1">Catatan Tambahan Observasi:</p>
+            <p className="text-[10px] leading-normal italic">{data.additionalNotes}</p>
+          </div>
+        )}
       </div>
 
       {/* PASCA-OBSERVASI */}
