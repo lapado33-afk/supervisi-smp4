@@ -2,57 +2,71 @@
 import { ObservationData } from '../types';
 
 /**
- * PASTE URL BARU ANDA DI SINI
+ * Penyimpanan Terintegrasi (Cloud + Local Fallback).
+ * 1. Deploy Code.gs di Apps Script sebagai Web App.
+ * 2. Masukkan URL hasil deploy (Web App URL) ke variabel di bawah ini.
  */
-const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwsPQMQp2QHdCijPQZO7roynGVxdJVuQV0TV9_n8WYzpW3pFIZpKLJNXu1yyLQpIkZGrA/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby85Jn_wcdrQXQ8wX9mUbk3_J9-KTVz4xO1mi9GWunPrUJTT04yRkTJ2_xAlH-3gU-m/exec'; 
 
 export const cloudStorage = {
   async fetchAll(): Promise<ObservationData[]> {
-    if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('NEW-URL-ID')) {
-      const saved = localStorage.getItem('supervision_data');
-      return saved ? JSON.parse(saved) : [];
+    // 1. Coba ambil dari Cloud Spreadsheet jika URL tersedia
+    if (WEB_APP_URL) {
+      try {
+        const response = await fetch(`${WEB_APP_URL}?action=getObservations`);
+        if (response.ok) {
+          const data = await response.json();
+          // Sync ke Local Storage sebagai backup/cache
+          localStorage.setItem('supervision_data', JSON.stringify(data));
+          return Array.isArray(data) ? data : [];
+        }
+      } catch (err) {
+        console.warn("Koneksi Cloud gagal atau URL salah, menggunakan data lokal:", err);
+      }
     }
 
+    // 2. Fallback ke Local Storage jika cloud gagal atau URL kosong
     try {
-      const response = await fetch(`${GAS_WEB_APP_URL}?action=getObservations`);
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        localStorage.setItem('supervision_data', JSON.stringify(data));
-        return data;
-      }
+      const saved = localStorage.getItem('supervision_data');
+      const data = saved ? JSON.parse(saved) : [];
+      return Array.isArray(data) ? data : [];
     } catch (err) {
-      console.error("Gagal fetch cloud:", err);
+      console.error("Gagal memuat data lokal:", err);
+      return [];
     }
-    const saved = localStorage.getItem('supervision_data');
-    return saved ? JSON.parse(saved) : [];
   },
 
   async save(data: ObservationData): Promise<void> {
-    // 1. Simpan Lokal
-    const saved = localStorage.getItem('supervision_data');
-    let observations: ObservationData[] = saved ? JSON.parse(saved) : [];
-    const index = observations.findIndex(o => String(o.teacherId) === String(data.teacherId));
-    if (index > -1) {
-      observations[index] = data;
-    } else {
-      observations.push(data);
-    }
-    localStorage.setItem('supervision_data', JSON.stringify(observations));
-
-    // 2. Kirim ke Cloud
-    if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('NEW-URL-ID')) return;
-
+    // 1. Simpan di Local Storage (Penyimpanan Utama Cepat)
     try {
-      // Gunakan mode no-cors untuk menghindari isu preflight
-      await fetch(GAS_WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(data),
-      });
-      console.log("Berhasil mengirim data ke antrean cloud.");
+      const saved = localStorage.getItem('supervision_data');
+      const observations = saved ? JSON.parse(saved) : [];
+      const updated = [
+        ...observations.filter((o: any) => o.teacherId !== data.teacherId),
+        data
+      ];
+      localStorage.setItem('supervision_data', JSON.stringify(updated));
     } catch (err) {
-      console.error("Gagal kirim ke cloud:", err);
+      console.error("Gagal menyimpan data lokal:", err);
+    }
+
+    // 2. Kirim ke Google Spreadsheet jika URL tersedia
+    if (WEB_APP_URL) {
+      try {
+        // Menggunakan mode no-cors jika perlu, tapi apps script biasanya butuh redirect
+        // Fetch standar biasanya cukup jika Apps Script dideploy "Anyone"
+        await fetch(WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors', // Apps script POST seringkali butuh ini karena redirect
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+        console.log("Data dikirim ke antrean sinkronisasi Spreadsheet.");
+      } catch (err) {
+        console.warn("Gagal sinkronisasi ke Spreadsheet:", err);
+      }
     }
   }
 };
