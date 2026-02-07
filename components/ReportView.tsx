@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
-import { Download, Users, Printer, Filter } from 'lucide-react';
+
+import React, { useState, useRef } from 'react';
+import { Download, Filter, X, FileText, Copy, Check } from 'lucide-react';
 import { ObservationData, SupervisionStatus } from '../types';
-import { OBSERVATION_INDICATORS, TEACHERS } from '../constants';
+import { TEACHERS, OBSERVATION_INDICATORS } from '../constants';
 import PrintReport from './PrintReport';
 
 interface Props {
@@ -13,38 +13,27 @@ interface Props {
 
 const ReportView: React.FC<Props> = ({ observations, principalName, principalNip }) => {
   const [printData, setPrintData] = useState<ObservationData | null>(null);
-
-  const radarData = OBSERVATION_INDICATORS.map(ind => {
-    const count = observations.filter(o => o.indicators && o.indicators[ind.id]?.checked).length;
-    return {
-      subject: ind.label,
-      A: count,
-      fullMark: Math.max(observations.length, 1),
-    };
-  });
+  const [showPreview, setShowPreview] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   const exportToCSV = () => {
     if (observations.length === 0) return alert("Tidak ada data untuk diunduh.");
-    
-    const headers = ["Nama Guru", "NIP Guru", "Mata Pelajaran", "Tanggal Observasi", "Status", "Tujuan Pembelajaran", "Rencana Tindak Lanjut"];
-    
+    const headers = ["Nama Guru", "NIP Guru", "Mata Pelajaran", "Tanggal", "Status", "Tujuan", "Area Pengembangan", "Strategi", "RTL"];
     const rows = observations.map(obs => {
-      // Prioritaskan teacherName dari data, atau cari di TEACHERS
       const teacher = TEACHERS.find(t => String(t.id) === String(obs.teacherId));
-      const teacherName = obs.teacherName || teacher?.name || 'Guru';
-      const teacherNip = obs.teacherNip || teacher?.nip || '';
-      
       return [
-        `"${teacherName}"`,
-        `"${teacherNip}"`,
+        `"${obs.teacherName || teacher?.name || 'Guru'}"`,
+        `"${obs.teacherNip || teacher?.nip || ''}"`,
         `"${obs.subject || teacher?.subject || ''}"`,
         `"${new Date(obs.date).toLocaleDateString('id-ID')}"`,
         `"${obs.status}"`,
         `"${(obs.learningGoals || '').replace(/"/g, '""')}"`,
+        `"${(obs.developmentArea || '').replace(/"/g, '""')}"`,
+        `"${(obs.strategy || '').replace(/"/g, '""')}"`,
         `"${(obs.rtl || '').replace(/"/g, '""')}"`
       ];
     });
-
     const csvContent = "\ufeff" + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -56,84 +45,143 @@ const ReportView: React.FC<Props> = ({ observations, principalName, principalNip
     document.body.removeChild(link);
   };
 
-  const handlePrint = (obs: ObservationData) => {
+  const copyToClipboard = () => {
+    if (!printData) return;
+    
+    const teacher = TEACHERS.find(t => String(t.id) === String(printData.teacherId));
+    const dateStr = new Date(printData.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    const text = `
+LAPORAN HASIL SUPERVISI AKADEMIK
+-------------------------------
+Nama Guru: ${printData.teacherName || teacher?.name}
+NIP Guru: ${printData.teacherNip || teacher?.nip || '-'}
+Mata Pelajaran: ${printData.subject}
+Tanggal: ${dateStr}
+Supervisor: ${principalName}
+
+I. PRA-OBSERVASI
+- Tujuan Pembelajaran: ${printData.learningGoals || '-'}
+- Area Pengembangan: ${printData.developmentArea || '-'}
+- Strategi / Metode: ${printData.strategy || '-'}
+- Catatan Supervisor: ${printData.supervisorNotes || '-'}
+
+II. HASIL OBSERVASI
+${OBSERVATION_INDICATORS.map((ind, idx) => `${idx + 1}. ${ind.label}: ${printData.indicators?.[ind.id]?.checked ? '[ADA]' : '[TIDAK]'} - Catatan: ${printData.indicators?.[ind.id]?.note || '-'}`).join('\n')}
+Catatan Tambahan Pelaksanaan: ${printData.additionalNotes || '-'}
+
+III. PASCA-OBSERVASI
+Refleksi Guru: ${printData.reflection || '-'}
+Feedback Supervisor: ${printData.coachingFeedback || '-'}
+Rencana Tindak Lanjut: ${printData.rtl || '-'}
+    `.trim();
+
+    navigator.clipboard.writeText(text).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    });
+  };
+
+  const openPreview = (obs: ObservationData) => {
     setPrintData(obs);
-    setTimeout(() => {
-      window.print();
-    }, 500);
+    setShowPreview(true);
+  };
+
+  const closePreview = () => {
+    setShowPreview(false);
+    setPrintData(null);
+  };
+
+  const handlePrint = () => {
+    if (!reportRef.current || !printData) return;
+    const printSection = document.getElementById('print-section');
+    if (!printSection) return;
+
+    printSection.innerHTML = '';
+    const contentClone = reportRef.current.cloneNode(true) as HTMLElement;
+    printSection.appendChild(contentClone);
+
+    const originalTitle = document.title;
+    const teacherName = printData.teacherName || 'Guru';
+    document.title = `Laporan_Supervisi_${teacherName.replace(/\s+/g, '_')}`;
+    window.print();
+    document.title = originalTitle;
+    printSection.innerHTML = '';
   };
 
   return (
-    <div className="space-y-8 animate-in duration-500">
-      <div className="print-only">
-        {printData && <PrintReport data={printData} principalName={principalName} />}
-      </div>
+    <div className="space-y-8 animate-in duration-500 relative">
+      {showPreview && printData && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-8">
+          <div className="absolute inset-0 modal-backdrop" onClick={closePreview}></div>
+          <div className="relative bg-white w-full max-w-5xl h-full max-h-[95vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in duration-300">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-100 p-2 rounded-xl text-blue-600">
+                  <FileText size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">Preview Laporan Resmi</h3>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1 italic">Siap Unduh atau Salin</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={copyToClipboard}
+                  className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2 shadow-lg active:scale-95 ${
+                    isCopied ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {isCopied ? <Check size={16} /> : <Copy size={16} />}
+                  <span>{isCopied ? 'TERSALIN!' : 'SALIN TEKS'}</span>
+                </button>
+                <button 
+                  onClick={handlePrint}
+                  className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all flex items-center space-x-2 shadow-lg shadow-emerald-200 active:scale-95"
+                >
+                  <Download size={16} />
+                  <span>UNDUH PDF</span>
+                </button>
+                <button 
+                  onClick={closePreview}
+                  className="bg-slate-100 text-slate-500 p-2.5 rounded-xl hover:bg-slate-200 transition-all active:scale-95"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-12 no-scrollbar">
+              <div ref={reportRef} className="bg-white shadow-xl mx-auto border border-slate-100 p-0 sm:p-4">
+                <PrintReport 
+                  data={printData} 
+                  principalName={principalName} 
+                  principalNip={principalNip} 
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <div className="flex items-center justify-between print-hidden">
+      <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Laporan & Analisis</h2>
-          <p className="text-slate-500 text-sm font-medium">Analisis kompetensi pedagogik guru SMPN 4 Mappedeceng.</p>
+          <p className="text-slate-500 text-sm font-medium">Rekapitulasi dan dokumen hasil supervisi akademik.</p>
         </div>
         <button 
           onClick={exportToCSV}
           className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-100 transition-all active:scale-95"
         >
           <Download size={18} />
-          <span>Unduh CSV</span>
+          <span>Ekspor CSV</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print-hidden">
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-bold mb-6 flex items-center">
-            <Users className="mr-3 text-blue-600" size={20} />
-            Peta Kekuatan Pembelajaran
-          </h3>
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                <PolarGrid stroke="#e2e8f0" />
-                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 9, fill: '#64748b', fontWeight: '800' }} />
-                <PolarRadiusAxis angle={30} domain={[0, Math.max(observations.length, 5)]} hide />
-                <Radar
-                  name="Jumlah Guru"
-                  dataKey="A"
-                  stroke="#2563eb"
-                  strokeWidth={3}
-                  fill="#3b82f6"
-                  fillOpacity={0.4}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm flex flex-col justify-center">
-          <h3 className="text-lg font-bold mb-6">Ringkasan Status Progres</h3>
-          <div className="space-y-6">
-            <div className="bg-emerald-50 border border-emerald-100 p-8 rounded-3xl">
-              <h4 className="text-emerald-900 font-bold text-xs mb-2 uppercase tracking-widest">Selesai Siklus</h4>
-              <p className="text-4xl font-black text-emerald-600">
-                {observations.filter(o => o.status === SupervisionStatus.FOLLOWED_UP).length}
-                <span className="text-xs font-bold text-emerald-700 ml-3">Guru</span>
-              </p>
-            </div>
-            <div className="bg-blue-50 border border-blue-100 p-8 rounded-3xl">
-              <h4 className="text-blue-900 font-bold text-xs mb-2 uppercase tracking-widest">Total Observasi</h4>
-              <p className="text-4xl font-black text-blue-600">
-                {observations.length}
-                <span className="text-xs font-bold text-blue-700 ml-3">Dokumen</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden print-hidden">
+      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <h3 className="text-lg font-bold">Riwayat Dokumen Supervisi</h3>
+          <h3 className="text-lg font-bold">Arsip Dokumen Supervisi</h3>
           <div className="flex items-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-            <Filter size={14} className="mr-2" /> Klik "CETAK" untuk laporan individu
+            <Filter size={14} className="mr-2" /> Klik BUKA untuk preview, salin, atau unduh
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -141,47 +189,42 @@ const ReportView: React.FC<Props> = ({ observations, principalName, principalNip
             <thead className="bg-slate-50">
               <tr>
                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Nama Guru</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Aksi</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status Terakhir</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Tindakan</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {observations.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-8 py-20 text-center text-slate-400 text-sm italic">Belum ada data yang tersimpan di cloud.</td>
+                  <td colSpan={3} className="px-8 py-20 text-center text-slate-400 text-sm italic">Belum ada rekaman observasi.</td>
                 </tr>
               ) : (
-                observations.map((obs, i) => {
-                  const teacher = TEACHERS.find(t => String(t.id) === String(obs.teacherId));
-                  const nameToDisplay = obs.teacherName || teacher?.name || 'Guru';
-                  
-                  return (
-                    <tr key={i} className="hover:bg-blue-50/30 transition-colors group">
-                      <td className="px-8 py-6">
-                        <p className="font-bold text-slate-900 text-sm">{nameToDisplay}</p>
-                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-wider">{obs.subject} • {new Date(obs.date).toLocaleDateString('id-ID')}</p>
-                      </td>
-                      <td className="px-8 py-6">
-                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${
-                          obs.status === SupervisionStatus.FOLLOWED_UP 
-                          ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
-                          : 'bg-blue-100 text-blue-700 border border-blue-200'
-                        }`}>
-                          {obs.status}
-                        </span>
-                      </td>
-                      <td className="px-8 py-6 text-center">
-                        <button 
-                          onClick={() => handlePrint(obs)}
-                          className="inline-flex items-center space-x-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] hover:bg-blue-600 transition-all shadow-md active:scale-95"
-                        >
-                          <Printer size={14} />
-                          <span>CETAK</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
+                observations.map((obs, i) => (
+                  <tr key={i} className="hover:bg-blue-50/30 transition-colors group">
+                    <td className="px-8 py-6">
+                      <p className="font-bold text-slate-900 text-sm">{obs.teacherName}</p>
+                      <p className="text-[10px] text-slate-500 font-black uppercase tracking-wider">{obs.subject} • {new Date(obs.date).toLocaleDateString('id-ID')}</p>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm border ${
+                        obs.status === SupervisionStatus.FOLLOWED_UP 
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
+                        : 'bg-blue-50 text-blue-700 border-blue-100'
+                      }`}>
+                        {obs.status}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6 text-center">
+                      <button 
+                        onClick={() => openPreview(obs)}
+                        className="inline-flex items-center space-x-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] hover:bg-blue-600 transition-all shadow-md active:scale-95"
+                      >
+                        <FileText size={14} />
+                        <span>BUKA</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
