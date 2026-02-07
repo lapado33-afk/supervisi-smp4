@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
-import { Users, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Users, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { ObservationData, SupervisionStatus } from '../types';
 
 interface Props {
@@ -11,7 +12,7 @@ const Dashboard: React.FC<Props> = ({ observations }) => {
   const stats = [
     { label: 'Total Guru', value: '15', icon: Users, color: 'bg-blue-500' },
     { label: 'Terjadwal', value: observations.filter(o => o.status === SupervisionStatus.PLANNED).length, icon: Clock, color: 'bg-amber-500' },
-    { label: 'Selesai Observasi', value: observations.filter(o => o.status === SupervisionStatus.OBSERVED).length, icon: CheckCircle2, color: 'bg-emerald-500' },
+    { label: 'Selesai Observasi', value: observations.filter(o => o.status === SupervisionStatus.OBSERVED).length, icon: CheckCircle, color: 'bg-emerald-500' },
     { label: 'Siklus Selesai', value: observations.filter(o => o.status === SupervisionStatus.FOLLOWED_UP).length, icon: AlertCircle, color: 'bg-indigo-500' },
   ];
 
