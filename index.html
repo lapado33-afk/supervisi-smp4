@@ -1,9 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supervisi Akademik Digital - UPT SMPN 4 MAPPEDECENG</title>
+    
+    <!-- Favicon agar logo di Vercel/Browser sempurna -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%232563eb%22/><path d=%22M30 70 L50 30 L70 70 Z%22 fill=%22white%22/></svg>">
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -27,31 +32,64 @@
             height: 100%;
             background-color: #f8fafc;
             font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
         }
         #root {
             display: flex;
             min-height: 100vh;
         }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* STRATEGI CETAK FINAL */
+        #print-section {
+            display: none;
+        }
+
         @media print {
-            body { background: white !important; }
-            .print-hidden { display: none !important; }
-            #root { display: block !important; }
-            aside { display: none !important; }
-            header { display: none !important; }
-            main { padding: 0 !important; margin: 0 !important; max-width: none !important; }
-            .ml-72 { margin-left: 0 !important; }
-            .print-only { display: block !important; }
+            /* 1. Sembunyikan SEMUA elemen aplikasi utama */
+            body > *:not(#print-section) {
+                display: none !important;
+            }
+
+            /* 2. Tampilkan area cetak secara eksklusif */
+            #print-section {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white !important;
+            }
+
+            /* 3. Reset total layout dokumen */
+            html, body {
+                height: auto !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
     </style>
     <script>
-      // POLYFILL KRUSIAL: Mencegah error "process is not defined" pada library @google/genai
       window.global = window;
-      window.process = { 
-        env: { 
-          NODE_ENV: 'production'
-        } 
-      };
+      window.process = { env: { NODE_ENV: 'production' } };
     </script>
 <script type="importmap">
 {
@@ -69,7 +107,12 @@
 </script>
 </head>
 <body class="text-slate-900">
+    <!-- Kontainer Aplikasi Utama -->
     <div id="root"></div>
+    
+    <!-- Kontainer Cetak Eksklusif (Hanya muncul saat Print) -->
+    <div id="print-section"></div>
+
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>
