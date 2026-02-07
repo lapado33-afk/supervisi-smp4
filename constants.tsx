@@ -1,120 +1,226 @@
+
 import { ObservationFocus, Teacher } from './types';
 
-export interface ObservationIndicator {
+export interface PerformanceTarget {
   id: string;
   label: string;
-  desc: string;
-  dianjurkan: string;
-  dihindari: string;
-  evidenceSuggestions: string[];
+  dianjurkan: string[];
+  dihindari: string[];
 }
 
-export const OBSERVATION_INDICATORS: ObservationIndicator[] = [
-  { 
-    id: 'interaktif', 
-    label: 'Suasana Interaktif', 
-    desc: 'Memfasilitasi komunikasi dua arah dan partisipasi aktif murid.',
-    dianjurkan: 'Mendorong murid bertanya dan berdiskusi kelompok.',
-    dihindari: 'Guru mendominasi pembicaraan tanpa memberi ruang respon.',
-    evidenceSuggestions: [
-      "Guru memberikan pertanyaan pemantik yang dijawab oleh lebih dari 5 murid berbeda.",
-      "Terlihat diskusi kelompok kecil di mana guru berkeliling memfasilitasi komunikasi antar murid.",
-      "Guru menggunakan teknik 'Think-Pair-Share' untuk memastikan semua murid berbicara.",
-      "Guru merespon pendapat murid dengan kalimat penguatan (reinforcement) yang positif."
+export interface PerformanceRubric {
+  id: string;
+  label: string;
+  description: string;
+  targets: PerformanceTarget[];
+}
+
+export const PERFORMANCE_RUBRICS: PerformanceRubric[] = [
+  {
+    id: 'instruksi',
+    label: 'Instruksi Pembelajaran',
+    description: 'Penjelasan terstruktur yang memandu murid memahami, mengaplikasi dan merefleksikan pembelajaran sebagai implementasi pembelajaran mendalam.',
+    targets: [
+      {
+        id: 'ins_1',
+        label: 'Guru mengajukan pertanyaan yang menstimulasi proses diskusi dan berpikir kritis',
+        dianjurkan: [
+          'Guru mengajukan pertanyaan terbuka untuk memancing proses diskusi dan berpikir kritis',
+          'Guru mengajukan pertanyaan yang mengaitkan konsep yang dipelajari dengan konsep sebelumnya',
+          'Guru mengajukan yang meminta peserta didik membandingkan dua konsep yang berbeda'
+        ],
+        dihindari: [
+          'Guru mengajukan pertanyaan hanya untuk menguji pemahaman peserta didik',
+          'Guru mengajukan pertanyaan yang meminta peserta didik mengulang konsep yang disampaikan',
+          'Guru menghakimi jawaban peserta didik sehingga membuat peserta didik yang lain ragu buat menjawab'
+        ]
+      },
+      {
+        id: 'ins_2',
+        label: 'Guru memfasilitasi kegiatan pembelajaran yang memberi peran pada semua peserta didik',
+        dianjurkan: [
+          'Guru memotivasi semua peserta didik untuk berperan aktif dalam proses pembelajaran',
+          'Guru menyediakan peran dalam kelompok untuk memastikan semua anggota mendapat peran',
+          'Guru memberi dukungan dan kesempatan pada peserta didik yang pasif untuk berperan'
+        ],
+        dihindari: [
+          'Guru membiarkan peserta didik membuat dan membagikan peran dalam kelompok',
+          'Guru menyediakan peran yang terbatas sehingga peserta didik tertentu tidak mendapat peran',
+          'Guru membiarkan sebagian peserta didik bersikap dominan dalam proses pembelajaran'
+        ]
+      },
+      {
+        id: 'ins_3',
+        label: 'Guru memfasilitasi terjadinya diskusi kelompok yang interaktif, kritis dan inklusif',
+        dianjurkan: [
+          'Guru memotivasi peserta didik untuk menyampaikan pendapat secara terbuka',
+          'Guru membentuk kelompok dengan beragam kemampuan dan minat',
+          'Guru berkeliling kelas untuk memberikan bimbingan pada kelompok dalam berdiskusi'
+        ],
+        dihindari: [
+          'Guru hanya duduk di depan dan membiarkan kelompok berdiskusi sendiri',
+          'Guru membiarkan peserta didik membentuk kelompok sendiri sesuka hatinya',
+          'Guru mengabaikan atau melarang perbedaan pendapat'
+        ]
+      }
     ]
   },
-  { 
-    id: 'inspiratif', 
-    label: 'Suasana Inspiratif', 
-    desc: 'Memberikan ruang prakarsa, kreativitas, dan kemandirian.',
-    dianjurkan: 'Memberi kesempatan murid mencoba ide baru.',
-    dihindari: 'Mendikte langkah-langkah kerja secara kaku.',
-    evidenceSuggestions: [
-      "Murid diberikan kebebasan memilih media presentasi (poster, video, atau lisan).",
-      "Guru memberikan tantangan terbuka (open-ended task) yang memicu beragam solusi dari murid.",
-      "Terdapat sesi curah pendapat (brainstorming) di mana gagasan murid dihargai tanpa interupsi.",
-      "Guru mengaitkan materi dengan tokoh inspiratif atau kejadian nyata yang menggugah emosi."
+  {
+    id: 'disiplin',
+    label: 'Penerapan Disiplin Positif',
+    description: 'Penerapan prinsip disiplin positif untuk mengelola perilaku dan kebiasaan kelas yang disepakati bersama agar kualitas lingkungan pembelajaran semakin meningkat.',
+    targets: [
+      {
+        id: 'dis_1',
+        label: 'Guru melakukan refleksi dinamika kelas untuk menerapkan kesepakatan kelas',
+        dianjurkan: [
+          'Guru mengajak peserta didik melakukan refleksi dinamika kelas secara terbuka',
+          'Guru menunjukkan kesediaan mendengarkan pandangan peserta didik tentang dinamika kelas',
+          'Guru bersikap adaptif dalam menyesuaikan pendekatan dalam menjalankan kedisiplinan'
+        ],
+        dihindari: [
+          'Guru mengabaikan pendapat peserta didik tentang apa yang terjadi di kelas',
+          'Guru bersikap defensive dalam menyikapi umpan balik dari peserta didik terkait kedisiplinan',
+          'Guru menerapkan hukuman fisik terhadap peserta didik yang melakukan pelanggaran kedisiplinan'
+        ]
+      },
+      {
+        id: 'dis_2',
+        label: 'Guru melakukan penguatan positif terhadap perilaku yang sesuai atau mendukung kesepakatan kelas',
+        dianjurkan: [
+          'Guru segera beri pengakuan terhadap perilaku peserta didik yang sesuai kesepakatan kelas',
+          'Guru beri penguatan positif dengan berbagai cara yang beragam',
+          'Guru mengakui suatu perilaku positif secara spesifik dan menjelaskan alasannya'
+        ],
+        dihindari: [
+          'Guru tidak konsisten dalam memberikan penguatan positif, hanya pada peserta didik tertentu',
+          'Guru mengabaikan perilaku positif karena terlalu fokus pada perilaku negatif atau hal lain',
+          'Guru melakukan penguatan perilaku yang tidak bermanfaat bagi peserta didik dan kelas secara keseluruhan'
+        ]
+      },
+      {
+        id: 'dis_3',
+        label: 'Guru melakukan restitusi untuk membantu peserta didik menyadari konsekuensi dan memperbaiki perilaku melanggarnya',
+        dianjurkan: [
+          'Guru dengan sabar membantu peserta didik menyadari konsekuensi dari perilaku melanggarnya',
+          'Guru mendengarkan sudut pandang peserta didik terhadap perilaku melanggarnya',
+          'Guru memberikan dukungan pada peserta didik dalam melakukan perbaikan perilakunya'
+        ],
+        dihindari: [
+          'Guru langsung memberikan hukuman, bukan membangun upaya perbaikan perilaku',
+          'Guru kehilangan kesabaran dalam membantu peserta didik menyadari konsekuensi perilakunya',
+          'Guru meminta peserta didik untuk tenang tanpa melakukan restitusi terhadap perilaku melanggar'
+        ]
+      }
     ]
   },
-  { 
-    id: 'menyenangkan', 
-    label: 'Suasana Menyenangkan', 
-    desc: 'Menciptakan lingkungan belajar yang aman, nyaman, dan inklusif.',
-    dianjurkan: 'Menggunakan ice breaking atau apresiasi positif.',
-    dihindari: 'Memberikan tekanan atau hukuman yang mempermalukan murid.',
-    evidenceSuggestions: [
-      "Guru memulai kelas dengan aktivitas penyegaran (ice breaking) yang relevan dengan materi.",
-      "Guru menyapa murid secara personal dan menunjukkan empati saat ada murid yang kesulitan.",
-      "Pengaturan tempat duduk dibuat fleksibel dan mendukung interaksi sosial yang hangat.",
-      "Guru menggunakan permainan (gamifikasi) dalam sesi penguatan konsep."
+  {
+    id: 'umpan_balik',
+    label: 'Umpan Balik Konstruktif',
+    description: 'Praktik pedagogis berupa penyampaian kemajuan proses dan capaian murid sehingga murid dapat melakukan perbaikan cara belajar dalam pembelajaran mendalam.',
+    targets: [
+      {
+        id: 'ub_1',
+        label: 'Guru mengkomunikasikan harapannya yang tinggi terhadap masa depan seluruh peserta didiknya',
+        dianjurkan: [
+          'Guru menyampaikan masa depan idaman yang bermakna bagi peserta didik.',
+          'Guru mendiskusikan harapan positif peserta didik tentang masa depannya.',
+          'Guru menyebutkan potensi peserta didik disertai kemungkinan positif di masa depan.'
+        ],
+        dihindari: [
+          'Guru menyebutkan perilaku-perilaku negatif peserta didiknya.',
+          'Guru menjelaskan harapan-harapan yang tidak relevan dengan peserta didik.',
+          'Guru mengabaikan potensi peserta didik karena lebih fokus pada kelemahannya.'
+        ]
+      },
+      {
+        id: 'ub_2',
+        label: 'Guru mengkomunikasikan harapan positif terhadap semua peserta didik secara setara dan tanpa diskriminasi',
+        dianjurkan: [
+          'Guru menyampaikan harapan positifnya secara terbuka dan berlaku bagi semua peserta didik.',
+          'Guru menyatakan secara eksplisit adanya keragaman potensi peserta didik.',
+          'Guru menyebutkan potensi peserta didik meski peserta didik sendiri tidak menyadarinya.'
+        ],
+        dihindari: [
+          'Guru menyampaikan harapan positif hanya pada peserta didik tertentu saja.',
+          'Guru mengulang harapan-harapan positif tertentu yang hanya relevan dengan sebagian peserta didik.',
+          'Guru menyebutkan potensi peserta didik yang terlihat menonjol saja.'
+        ]
+      },
+      {
+        id: 'ub_3',
+        label: 'Guru memberikan tantangan yang bermakna disertai motivasi untuk mencapainya',
+        dianjurkan: [
+          'Menyediakan tantangan belajar yang relevan dengan pembelajaran dan bermakna bagi peserta didik.',
+          'Menunjukkan keyakinan berulang kali bahwa peserta didiknya mampu mengatasi tantangan belajar.',
+          'Memberikan umpan balik dan dukungan agar peserta didiknya berhasil.'
+        ],
+        dihindari: [
+          'Memberikan tantangan belajar tapi tidak memberikan motivasi.',
+          'Menggunakan hadiah dan hukuman untuk memotivasi murid.',
+          'Mengkomunikasikan kompetisi dalam kelas secara berlebihan.'
+        ]
+      }
     ]
   },
-  { 
-    id: 'menantang', 
-    label: 'Suasana Menantang', 
-    desc: 'Mendorong daya kritis melalui tugas yang kompleks namun terjangkau.',
-    dianjurkan: 'Memberikan pertanyaan pemantik "Mengapa" dan "Bagaimana".',
-    dihindari: 'Hanya memberikan soal latihan hapalan yang monoton.',
-    evidenceSuggestions: [
-      "Guru memberikan soal berbasis studi kasus yang menuntut analisis tingkat tinggi (HOTS).",
-      "Murid diminta untuk membandingkan dua sudut pandang berbeda mengenai satu topik.",
-      "Tugas yang diberikan memiliki tingkat kesulitan yang bertahap (scaffolding).",
-      "Guru menantang murid untuk membuktikan argumen mereka dengan data atau referensi."
+  {
+    id: 'perhatian_kepedulian',
+    label: 'Perhatian dan Kepedulian',
+    description: 'Praktik pedagogis berupa pemberian perhatian dan dukungan sesuai dengan kebutuhan belajar setiap murid agar semua murid siap melakukan pembelajaran mendalam.',
+    targets: [
+      {
+        id: 'pk_1',
+        label: 'Guru menunjukkan empati untuk mendapatkan pemahaman utuh tentang peserta didik',
+        dianjurkan: [
+          'Guru memberikan perhatian penuh ketika peserta didik berbicara',
+          'Guru mengajukan pertanyaan lanjutan untuk mendapatkan pemahaman',
+          'Guru menunjukkan pengertian terhadap sudut pandang peserta didik'
+        ],
+        dihindari: [
+          'Guru mengabaikan pendapat atau perasaan peserta didik',
+          'Guru memberikan penilaian negatif terhadap pendapat peserta didik',
+          'Guru tidak memberikan kesempatan pada peserta didik menyampaikan pendapat'
+        ]
+      },
+      {
+        id: 'pk_2',
+        label: 'Guru menunjukkan pemahaman terhadap kebutuhan, kondisi dan karakteristik peserta didik',
+        dianjurkan: [
+          'Guru melakukan pengamatan terhadap dinamika kelas untuk memahami peserta didik',
+          'Guru melakukan interaksi positif yang menghargai keunikan peserta didik',
+          'Guru meminta pendapat dan umpan balik dari peserta didik'
+        ],
+        dihindari: [
+          'Guru bertindak berdasarkan asumsi tanpa menggali fakta terkait peserta didik',
+          'Guru bersikap kaku dalam pembelajaran yang mengabaikan kebutuhan peserta didik',
+          'Guru menghindari masukan atau umpan balik dari peserta didik'
+        ]
+      },
+      {
+        id: 'pk_3',
+        label: 'Guru mengakui dan menghargai usaha yang ditunjukkan peserta didik',
+        dianjurkan: [
+          'Guru menunjukkan minat/keingintahuan terhadap aktivitas yang dilakukan murid',
+          'Guru memberikan pujian terhadap usaha, bukan hasil akhir, yang ditunjukkan peserta didik',
+          'Guru menyampaikan dukungan terhadap usaha peserta didik di depan kelas'
+        ],
+        dihindari: [
+          'Guru meremehkan usaha-usaha yang dilakukan peserta didik',
+          'Guru memberikan pujian yang terlalu umum atau berlebihan/bombastis',
+          'Guru bersikap terlalu kritis terhadap usaha yang dilakukan peserta didik'
+        ]
+      }
     ]
-  },
-  { 
-    id: 'motivasi', 
-    label: 'Motivasi Belajar', 
-    desc: 'Mendorong partisipasi sesuai bakat, minat, dan perkembangan fisik/psikologis.',
-    dianjurkan: 'Mengaitkan materi dengan kegemaran atau cita-cita murid.',
-    dihindari: 'Mengabaikan perbedaan minat antar murid di kelas.',
-    evidenceSuggestions: [
-      "Guru menjelaskan manfaat langsung materi pembelajaran dalam kehidupan sehari-hari.",
-      "Guru memberikan pilihan tugas berdasarkan minat murid (diferensiasi produk).",
-      "Terlihat murid sangat antusias dan fokus mengerjakan tugas tanpa perlu diingatkan berkali-kali.",
-      "Guru memberikan 'reward' verbal yang spesifik atas usaha (effort) murid, bukan hanya hasil."
-    ]
-  },
-  { 
-    id: 'memahami', 
-    label: 'Pengalaman Memahami', 
-    desc: 'Membangun sikap, pengetahuan, dan keterampilan dari berbagai sumber.',
-    dianjurkan: 'Memanfaatkan teknologi atau lingkungan sekitar sebagai sumber belajar.',
-    dihindari: 'Hanya terpaku pada buku teks tunggal.',
-    evidenceSuggestions: [
-      "Murid mencari informasi menggunakan gawai atau referensi di luar buku paket.",
-      "Guru membawa benda nyata atau mengundang narasumber luar ke dalam kelas.",
-      "Murid melakukan observasi langsung di lingkungan sekolah untuk mengumpulkan data.",
-      "Guru menggunakan simulasi digital/video untuk menjelaskan konsep yang abstrak."
-    ]
-  },
-  { 
-    id: 'mengaplikasi', 
-    label: 'Pengalaman Mengaplikasi', 
-    desc: 'Menggunakan pengetahuan dalam situasi nyata dan kontekstual.',
-    dianjurkan: 'Proyek nyata atau simulasi masalah kehidupan sehari-hari.',
-    dihindari: 'Materi berhenti pada konsep teoritis tanpa relevansi nyata.',
-    evidenceSuggestions: [
-      "Murid melakukan praktik langsung (misal: membuat laporan keuangan sederhana atau percobaan sains).",
-      "Tugas akhir berupa produk yang bisa dimanfaatkan oleh masyarakat atau warga sekolah.",
-      "Murid mensimulasikan dialog/peran sesuai dengan situasi dunia kerja nyata.",
-      "Guru memberikan instruksi yang menghubungkan teori dengan masalah aktual di berita."
-    ]
-  },
-  { 
-    id: 'merefleksi', 
-    label: 'Aktivitas Merefleksi', 
-    desc: 'Aktivitas mengevaluasi dan memaknai proses serta hasil belajar.',
-    dianjurkan: 'Menanyakan "Apa yang kamu pelajari hari ini?" di akhir sesi.',
-    dihindari: 'Menutup kelas terburu-buru tanpa simpulan dari murid.',
-    evidenceSuggestions: [
-      "Guru menyediakan waktu khusus di akhir sesi bagi murid untuk mengisi jurnal refleksi.",
-      "Beberapa murid menyampaikan hal baru yang mereka pahami dan apa yang masih membingungkan.",
-      "Guru mengajak murid menilai efektivitas metode belajar yang digunakan hari ini.",
-      "Terdapat simpulan bersama yang disusun oleh murid, bukan hanya oleh guru."
-    ]
-  },
+  }
 ];
+
+// Menurunkan OBSERVATION_INDICATORS dari target rubrik untuk konsistensi data di laporan
+export const OBSERVATION_INDICATORS = PERFORMANCE_RUBRICS.flatMap(rubric => 
+  rubric.targets.map(target => ({
+    id: target.id,
+    label: target.label
+  }))
+);
 
 export const TEACHERS: Teacher[] = [
   { id: '1', name: 'Mariati,S.Ag', nip: '197503122005012008', subject: 'Pendidikan Agama Islam', phase: 'Fase D' },
@@ -135,7 +241,8 @@ export const TEACHERS: Teacher[] = [
 ];
 
 export const FOCUS_OPTIONS: ObservationFocus[] = [
-  { id: '1', title: 'Manajemen Kelas (Standar Proses)', description: 'Fokus pada suasana interaktif dan menyenangkan.' },
-  { id: '2', title: 'Kualitas Instruksi (Standar Proses)', description: 'Fokus pada pengalaman memahami dan mengaplikasi.' },
-  { id: '3', title: 'Refleksi Pembelajaran', description: 'Fokus pada kemampuan murid mengevaluasi hasil belajarnya.' },
+  { id: 'instruksi', title: 'Instruksi Pembelajaran', description: 'Fokus pada penjelasan terstruktur dan implementasi pembelajaran mendalam.' },
+  { id: 'disiplin', title: 'Penerapan Disiplin Positif', description: 'Fokus pada pengelolaan perilaku melalui prinsip disiplin positif.' },
+  { id: 'umpan_balik', title: 'Umpan Balik Konstruktif', description: 'Fokus pada penyampaian kemajuan proses dan harapan tinggi masa depan murid.' },
+  { id: 'perhatian_kepedulian', title: 'Perhatian dan Kepedulian', description: 'Fokus pada pemberian perhatian dan dukungan sesuai kebutuhan belajar murid.' },
 ];
