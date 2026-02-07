@@ -1,216 +1,313 @@
 
-import React, { useState } from 'react';
-import { Sparkles, MessageCircle, RefreshCcw, Check, Clock, History, AlertCircle, MousePointer2, ListChecks, Lightbulb, CheckCircle2 } from 'lucide-react';
-import { ObservationData, SupervisionStatus } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Info, ChevronRight, FileText, BookOpen, Clock, Target, CreditCard, Layers, Zap, StickyNote, Check, Plus } from 'lucide-react';
 import { TEACHERS, FOCUS_OPTIONS } from '../constants';
-import { generateCoachingAdvice } from '../services/geminiService';
+import { ObservationData, SupervisionStatus } from '../types';
 
 interface Props {
-  observations: ObservationData[];
   onSave: (data: ObservationData) => void;
+  principalNip: string;
 }
 
-const REFLECTION_SUGGESTIONS = [
-  { category: 'Positif', label: 'Murid sangat antusias and aktif berdiskusi kelompok', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-  { category: 'Positif', label: 'Tujuan pembelajaran tercapai melalui media visual yang tepat', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-  { category: 'Tantangan', label: 'Manajemen waktu meleset pada bagian penutup/refleksi', color: 'bg-amber-50 text-amber-700 border-amber-100' },
-  { category: 'Tantangan', label: 'Beberapa murid di baris belakang kurang fokus/terlibat', color: 'bg-amber-50 text-amber-700 border-amber-100' },
+const AREA_SUGGESTIONS = [
+  "Pemanfaatan IT dalam pembelajaran (Canva/Quizizz/Wordwall)",
+  "Penerapan Strategi Diferensiasi (Konten/Proses/Produk)",
+  "Pengembangan Kompetensi Sosial Emosional (KSE) murid",
+  "Peningkatan Keaktifan Murid melalui diskusi kelompok interaktif",
+  "Penerapan Disiplin Positif dan Budaya Positif di kelas"
 ];
 
-const RTL_SUGGESTIONS = [
-  { category: 'PMM', label: 'Pelatihan Mandiri PMM Topik Diferensiasi', color: 'bg-blue-50 text-blue-700' },
-  { category: 'Kolaborasi', label: 'Observasi Rekan Sejawat (Peer Coaching)', color: 'bg-emerald-50 text-emerald-700' },
-  { category: 'Teknis', label: 'Penyusunan Ulang Modul Ajar (Diferensiasi Produk)', color: 'bg-amber-50 text-amber-700' },
+const STRATEGY_SUGGESTIONS = [
+  "Model Problem Based Learning (PBL) dengan media interaktif",
+  "Model Discovery Learning melalui metode Eksperimen mandiri",
+  "Project Based Learning (PjBL) berbasis masalah lingkungan nyata",
+  "Cooperative Learning metode Jigsaw untuk kolaborasi aktif",
+  "Flipped Classroom dengan memanfaatkan materi belajar di PMM"
 ];
 
-const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
-  const [selectedObs, setSelectedObs] = useState<ObservationData | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [reflection, setReflection] = useState('');
-  const [feedback, setFeedback] = useState('');
-  const [rtl, setRtl] = useState('');
+const NOTES_SUGGESTIONS = [
+  "Fokus pada interaksi antara guru dan murid yang cenderung pasif",
+  "Perhatikan manajemen waktu terutama saat transisi antar fase",
+  "Amati penggunaan media ajar apakah benar-benar membantu pemahaman",
+  "Pastikan umpan balik diberikan secara merata kepada seluruh kelompok",
+  "Dokumentasikan variasi pertanyaan pemantik yang diajukan guru"
+];
+
+const PreObservation: React.FC<Props> = ({ onSave, principalNip }) => {
+  const [selectedTeacher, setSelectedTeacher] = useState('');
+  const [teacherNip, setTeacherNip] = useState('');
+  const [subject, setSubject] = useState('');
+  const [obsDate, setObsDate] = useState('');
+  const [convTime, setConvTime] = useState('');
+  const [learningGoals, setLearningGoals] = useState('');
+  const [developmentArea, setDevelopmentArea] = useState('');
+  const [strategy, setStrategy] = useState('');
+  const [supervisorNotes, setSupervisorNotes] = useState('');
+  const [selectedFocus, setSelectedFocus] = useState('');
   const [isSaved, setIsSaved] = useState(false);
-  const [viewMode, setViewMode] = useState<'pending' | 'history'>('pending');
 
-  const pendingObs = observations.filter(o => o.status === SupervisionStatus.OBSERVED);
-  const historyObs = observations.filter(o => o.status === SupervisionStatus.FOLLOWED_UP);
+  useEffect(() => {
+    const teacher = TEACHERS.find(t => t.id === selectedTeacher);
+    if (teacher) {
+      setSubject(teacher.subject);
+      setTeacherNip(teacher.nip || '');
+    }
+  }, [selectedTeacher]);
 
-  const handleSelect = (obs: ObservationData) => {
-    setSelectedObs(obs);
-    setReflection(obs.reflection || '');
-    setFeedback(obs.coachingFeedback || '');
-    setRtl(obs.rtl || '');
+  const handleAppendArea = (text: string) => {
+    setDevelopmentArea(prev => prev ? `${prev}. ${text}` : text);
   };
 
-  const handleGenerateAI = async () => {
-    if (!selectedObs) return;
-    setIsGenerating(true);
-    
-    const allNotes = Object.values(selectedObs.indicators)
-      .map(i => (i as { note: string }).note)
-      .filter(n => n)
-      .join(". ");
-
-    const advice = await generateCoachingAdvice(allNotes || "Guru telah mengajar dengan baik.", selectedObs.focusId);
-    setFeedback(advice || '');
-    setIsGenerating(false);
+  const handleAppendStrategy = (text: string) => {
+    setStrategy(prev => prev ? `${prev}. ${text}` : text);
   };
 
-  const handleSave = () => {
-    if (!selectedObs) return;
-    
-    const teacherRef = TEACHERS.find(t => String(t.id) === String(selectedObs.teacherId));
+  const handleAppendNotes = (text: string) => {
+    setSupervisorNotes(prev => prev ? `${prev}. ${text}` : text);
+  };
 
-    const updated: ObservationData = {
-      ...selectedObs,
-      teacherName: teacherRef?.name || selectedObs.teacherName || 'Guru',
-      teacherNip: selectedObs.teacherNip || teacherRef?.nip || '',
-      principalNip: selectedObs.principalNip || '',
-      reflection,
-      coachingFeedback: feedback,
-      rtl,
-      status: SupervisionStatus.FOLLOWED_UP
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTeacher || !selectedFocus || !learningGoals) {
+      return alert('Mohon lengkapi minimal Nama Guru, Fokus, dan Tujuan Pembelajaran!');
+    }
+
+    const teacherObj = TEACHERS.find(t => t.id === selectedTeacher);
+
+    const data: ObservationData = {
+      teacherId: selectedTeacher,
+      teacherName: teacherObj?.name || '',
+      teacherNip: teacherNip,
+      principalNip: principalNip,
+      date: obsDate || new Date().toISOString(),
+      subject: subject,
+      conversationTime: convTime,
+      learningGoals: learningGoals,
+      developmentArea: developmentArea,
+      strategy: strategy,
+      supervisorNotes: supervisorNotes,
+      focusId: selectedFocus,
+      indicators: {},
+      reflection: '',
+      coachingFeedback: '',
+      rtl: '',
+      status: SupervisionStatus.PLANNED
     };
-    onSave(updated);
+
+    onSave(data);
     setIsSaved(true);
-    setTimeout(() => {
-      setIsSaved(false);
-      setSelectedObs(null);
-    }, 1500);
+    setTimeout(() => setIsSaved(false), 3000);
   };
-
-  if (!selectedObs) {
-    const currentList = viewMode === 'pending' ? pendingObs : historyObs;
-
-    return (
-      <div className="space-y-6 animate-in fade-in duration-500">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">Pasca-Observasi & Coaching</h2>
-            <p className="text-slate-500 text-sm font-medium">Refleksi dan umpan balik alur TIRTA.</p>
-          </div>
-          
-          <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-            <button 
-              onClick={() => setViewMode('pending')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'pending' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
-            >
-              <Clock size={16} />
-              <span>Antrean ({pendingObs.length})</span>
-            </button>
-            <button 
-              onClick={() => setViewMode('history')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'history' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
-            >
-              <History size={16} />
-              <span>Selesai ({historyObs.length})</span>
-            </button>
-          </div>
-        </div>
-
-        {currentList.length === 0 ? (
-          <div className="py-24 bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] flex flex-col items-center justify-center text-center px-6">
-            <h3 className="text-xl font-bold text-slate-900">Kosong</h3>
-            <p className="text-slate-500 max-w-sm mt-2 text-sm">Tidak ada data untuk ditampilkan saat ini.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {currentList.map((obs) => (
-              <div key={obs.teacherId} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between group">
-                <div>
-                  <p className="font-bold text-slate-900">{obs.teacherName}</p>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{obs.subject}</p>
-                </div>
-                <button 
-                  onClick={() => handleSelect(obs)}
-                  className={`px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all ${
-                    viewMode === 'pending' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
-                  }`}
-                >
-                  {viewMode === 'pending' ? 'Coaching' : 'Buka'}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-8 animate-in slide-in-from-right-8 duration-500 pb-20">
-      <div className="flex items-center justify-between">
-        <button onClick={() => setSelectedObs(null)} className="text-slate-500 hover:text-slate-900 font-bold flex items-center text-sm">
-          <RefreshCcw size={16} className="mr-2" /> Kembali
-        </button>
-        <div className="text-right">
-          <h2 className="text-xl font-bold text-slate-900 uppercase tracking-tight">{selectedObs.teacherName}</h2>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{selectedObs.subject}</p>
+    <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">Perencanaan Pra-Observasi</h2>
+        <p className="text-slate-500 text-sm font-medium">Langkah awal pendampingan akademik berbasis pengembangan kompetensi.</p>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl flex items-start space-x-4">
+        <div className="bg-blue-600 p-2 rounded-lg text-white mt-1 shadow-md">
+          <Info size={20} />
+        </div>
+        <div>
+          <h4 className="font-bold text-blue-900 text-sm uppercase tracking-wide">Panduan Pengisian</h4>
+          <p className="text-xs text-blue-800 leading-relaxed mt-1 font-medium">
+            Gunakan pilihan cepat di bawah kotak isian untuk mempercepat pendokumentasian kesepakatan. Anda tetap dapat memilih lebih dari satu saran (akumulatif).
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
-          <div className="space-y-4">
-            <label className="block text-sm font-bold text-slate-700">1. Refleksi Guru</label>
-            <div className="flex flex-wrap gap-2">
-              {REFLECTION_SUGGESTIONS.map((s, idx) => (
-                <button key={idx} onClick={() => setReflection(s.label)} className={`text-[10px] font-bold px-3 py-2 rounded-xl border ${s.color}`}>+ {s.label}</button>
-              ))}
-            </div>
-            <textarea value={reflection} onChange={(e) => setReflection(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-32 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Hasil refleksi guru..." />
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-bold text-slate-700">2. Feedback Supervisor (TIRTA)</label>
-              <button onClick={handleGenerateAI} disabled={isGenerating} className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-4 py-2 rounded-full hover:bg-indigo-100 transition-all">
-                <Sparkles size={14} /> <span>{isGenerating ? 'Analisis...' : 'Saran AI'}</span>
-              </button>
-            </div>
-            <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-48 text-xs font-medium leading-relaxed outline-none focus:ring-2 focus:ring-blue-500" placeholder="Umpan balik coaching..." />
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-bold text-slate-700">3. Rencana Tindak Lanjut (RTL)</label>
-            <div className="flex flex-wrap gap-2">
-              {RTL_SUGGESTIONS.map((s, idx) => (
-                <button key={idx} onClick={() => setRtl(s.label)} className={`text-[10px] font-bold px-3 py-2 rounded-xl border border-slate-200 ${s.color}`}>+ {s.label}</button>
-              ))}
-            </div>
-            <textarea value={rtl} onChange={(e) => setRtl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-32 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Komitmen pengembangan..." />
-          </div>
-
-          <div className="pt-6 border-t border-slate-100 flex justify-end">
-            <button 
-              onClick={handleSave}
-              className="bg-emerald-600 text-white px-10 py-5 rounded-2xl font-bold flex items-center space-x-2 hover:bg-emerald-700 shadow-xl shadow-emerald-200 transition-all active:scale-95"
+      <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-2">
+            <label className="flex items-center text-[11px] font-black text-slate-400 uppercase tracking-widest">
+              <BookOpen size={14} className="mr-2 text-blue-600" /> Nama Guru
+            </label>
+            <select 
+              value={selectedTeacher}
+              onChange={(e) => setSelectedTeacher(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-900"
             >
-              {isSaved ? <><CheckCircle2 size={20} /> <span>Siklus Selesai</span></> : <><Check size={20} /> <span>Simpan & Selesaikan</span></>}
-            </button>
+              <option value="">-- Pilih Guru --</option>
+              {TEACHERS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center text-[11px] font-black text-slate-400 uppercase tracking-widest">
+              <CreditCard size={14} className="mr-2 text-blue-600" /> NIP Guru
+            </label>
+            <input 
+              type="text" 
+              value={teacherNip}
+              onChange={(e) => setTeacherNip(e.target.value)}
+              placeholder="Masukkan NIP..."
+              className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-900"
+            />
           </div>
         </div>
 
-        <div className="hidden lg:block bg-slate-900 text-white p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden">
-          <Sparkles className="absolute top-4 right-4 text-blue-400 opacity-20" size={100} />
-          <h4 className="font-bold mb-8 text-xl">Prinsip Coaching Alur TIRTA</h4>
-          <div className="space-y-8 relative z-10">
-            {[
-              { k: 'T', l: 'Tujuan', d: 'Menentukan arah pembicaraan' },
-              { k: 'I', l: 'Identifikasi', d: 'Memetakan situasi nyata' },
-              { k: 'R', l: 'Rencana', d: 'Mengeksplorasi ide guru' },
-              { k: 'TA', l: 'Aksi', d: 'Komitmen langkah nyata' }
-            ].map(p => (
-              <div key={p.k} className="flex items-start">
-                <div className="bg-blue-600 text-white p-3 rounded-xl mr-4 font-black min-w-[40px] text-center shadow-lg">{p.k}</div>
-                <div><p className="font-bold">{p.l}</p><p className="text-xs text-slate-400 font-medium">{p.d}</p></div>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest">Mata Pelajaran</label>
+            <input 
+              type="text" 
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Mata Pelajaran"
+              className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-900"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest">Tanggal Observasi</label>
+            <input 
+              type="date" 
+              value={obsDate}
+              onChange={(e) => setObsDate(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-900"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center text-[11px] font-black text-slate-400 uppercase tracking-widest">
+              <Clock size={14} className="mr-2 text-blue-600" /> Jam Pertemuan
+            </label>
+            <input 
+              type="time" 
+              value={convTime}
+              onChange={(e) => setConvTime(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-900"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          <div className="space-y-3">
+            <label className="flex items-center text-[11px] font-black text-slate-400 uppercase tracking-widest">
+              <Target size={14} className="mr-2 text-blue-600" /> Tujuan Pembelajaran
+            </label>
+            <textarea 
+              value={learningGoals}
+              onChange={(e) => setLearningGoals(e.target.value)}
+              placeholder="Contoh: Peserta didik mampu menganalisis struktur teks naratif melalui diskusi kelompok..."
+              className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-24 focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-all text-sm font-bold text-slate-900 shadow-inner"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <label className="flex items-center text-[11px] font-black text-slate-400 uppercase tracking-widest">
+              <Layers size={14} className="mr-2 text-blue-600" /> 1. Area Pengembangan yang Hendak Dicapai
+            </label>
+            <textarea 
+              value={developmentArea}
+              onChange={(e) => setDevelopmentArea(e.target.value)}
+              placeholder="Tuliskan area fokus pengembangan di sini..."
+              className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-24 focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-all text-sm font-bold text-slate-900 shadow-inner"
+            />
+            <div className="flex flex-wrap gap-2">
+              {AREA_SUGGESTIONS.map((option, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleAppendArea(option)}
+                  className="flex items-center space-x-1 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-[10px] font-bold text-slate-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95"
+                >
+                  <Plus size={10} />
+                  <span>{option}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <label className="flex items-center text-[11px] font-black text-slate-400 uppercase tracking-widest">
+              <Zap size={14} className="mr-2 text-blue-600" /> 2. Strategi / Metode yang Dipersiapkan
+            </label>
+            <textarea 
+              value={strategy}
+              onChange={(e) => setStrategy(e.target.value)}
+              placeholder="Tuliskan strategi atau model pembelajaran di sini..."
+              className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-24 focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-all text-sm font-bold text-slate-900 shadow-inner"
+            />
+            <div className="flex flex-wrap gap-2">
+              {STRATEGY_SUGGESTIONS.map((option, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleAppendStrategy(option)}
+                  className="flex items-center space-x-1 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-[10px] font-bold text-slate-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95"
+                >
+                  <Plus size={10} />
+                  <span>{option}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <label className="flex items-center text-[11px] font-black text-slate-400 uppercase tracking-widest">
+              <StickyNote size={14} className="mr-2 text-blue-600" /> Catatan Khusus Supervisor
+            </label>
+            <textarea 
+              value={supervisorNotes}
+              onChange={(e) => setSupervisorNotes(e.target.value)}
+              placeholder="Contoh: Berikan perhatian khusus pada murid di baris belakang selama diskusi..."
+              className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-24 focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-all text-sm font-medium italic text-slate-600 shadow-inner"
+            />
+            <div className="flex flex-wrap gap-2">
+              {NOTES_SUGGESTIONS.map((option, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleAppendNotes(option)}
+                  className="flex items-center space-x-1 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-[10px] font-bold text-slate-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95"
+                >
+                  <Plus size={10} />
+                  <span>{option}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4 pt-4">
+          <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Pilih Fokus Indikator Observasi</label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {FOCUS_OPTIONS.map((focus) => (
+              <button
+                key={focus.id}
+                type="button"
+                onClick={() => setSelectedFocus(focus.id)}
+                className={`p-6 rounded-3xl border text-left transition-all duration-300 ${
+                  selectedFocus === focus.id 
+                    ? 'border-blue-600 bg-blue-50 ring-4 ring-blue-100 shadow-md' 
+                    : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                }`}
+              >
+                <h5 className="font-black text-slate-900 mb-2 text-sm">{focus.title}</h5>
+                <p className="text-[10px] text-slate-500 leading-relaxed font-medium">{focus.description}</p>
+              </button>
             ))}
           </div>
         </div>
-      </div>
+
+        <div className="flex justify-end pt-10 border-t border-slate-100">
+          <button 
+            type="submit"
+            className="bg-blue-600 text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center space-x-3 hover:bg-blue-700 shadow-2xl shadow-blue-200 transition-all active:scale-95"
+          >
+            {isSaved ? (
+              <><Check size={20} /> <span>Tersimpan di Cloud</span></>
+            ) : (
+              <><FileText size={20} /> <span>Simpan Perencanaan</span> <ChevronRight size={20} /></>
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
 
-export default PostObservation;
+export default PreObservation;
