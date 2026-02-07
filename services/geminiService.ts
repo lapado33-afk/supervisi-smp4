@@ -15,36 +15,31 @@ const cleanMarkdown = (text: string) => {
 
 export const generateCoachingAdvice = async (notes: string, focusId: string) => {
   try {
-    const apiKey = process.env.API_KEY || "";
-    
-    if (!apiKey) {
-      console.warn("API Key Gemini tidak ditemukan.");
-      return "Catatan: API Key belum dikonfigurasi.";
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
+    // Initializing with process.env.API_KEY as per hard requirement
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const focusMap: Record<string, string> = {
-      '1': 'Manajemen Kelas (Suasana interaktif & menyenangkan)',
-      '2': 'Kualitas Instruksi (Pengalaman memahami & mengaplikasi)',
-      '3': 'Refleksi Pembelajaran (Evaluasi hasil belajar)'
+      'instruksi': 'Kualitas Instruksi (Penjelasan terstruktur & pengaktifan kognitif)',
+      'disiplin': 'Pengelolaan Kelas (Disiplin positif & restitusi)',
+      'umpan_balik': 'Umpan Balik Konstruktif (Harapan tinggi & tantangan bermakna)',
+      'perhatian_kepedulian': 'Perhatian dan Kepedulian (Dukungan emosional & kebutuhan murid)'
     };
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `
-        Bertindaklah sebagai Kepala Sekolah profesional. 
-        Berikan umpan balik coaching dengan alur TIRTA berdasarkan data ini:
+        Bertindaklah sebagai Desainer Pembelajaran Mendalam (Deep Learning Designer) yang berperan sebagai Kepala Sekolah profesional yang hangat. 
+        Berikan umpan balik coaching dengan alur TIRTA berdasarkan data observasi berikut:
         
-        DATA OBSERVASI:
-        - Temuan: "${notes}"
-        - Fokus: "${focusMap[focusId] || 'Umum'}"
+        DATA TEMUAN: "${notes}"
+        FOKUS PENGEMBANGAN: "${focusMap[focusId] || 'Umum'}"
         
-        ATURAN FORMAT (PENTING):
+        ATURAN FORMAT (WAJIB):
         1. JANGAN GUNAKAN simbol markdown seperti bintang (* atau **), pagar (#), atau bullet point strip (-).
-        2. Gunakan Bahasa Indonesia formal dan hangat.
-        3. Sajikan dalam paragraf bersih. Jika butuh penomoran, gunakan angka biasa (1. 2. 3.) tanpa simbol tambahan.
-        4. Pastikan teks terlihat seperti isi surat resmi.
+        2. Gunakan Bahasa Indonesia formal tapi sangat memotivasi.
+        3. Sajikan dalam paragraf bersih. Gunakan penomoran angka biasa (1. 2. 3.) jika diperlukan.
+        4. Teks harus terasa personal, seolah-olah sedang berbicara langsung dalam sesi coaching yang nyaman.
+        5. DILARANG menggunakan istilah "Profil Pelajar Pancasila". Jika relevan, gunakan istilah "8 Dimensi Profil Lulusan".
       `,
     });
 
@@ -52,6 +47,6 @@ export const generateCoachingAdvice = async (notes: string, focusId: string) => 
     return cleanMarkdown(rawText);
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Terjadi kendala teknis saat menghubungi AI.";
+    return "Terjadi kendala teknis saat menghubungi AI. Silakan coba beberapa saat lagi.";
   }
 };
