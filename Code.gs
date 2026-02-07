@@ -1,17 +1,18 @@
+
 /**
  * BACKEND API - SISTEM SUPERVISI AKADEMIK DIGITAL
  * UPT SMPN 4 MAPPEDECENG
  */
 
-// GANTI DENGAN ID SPREADSHEET ANDA!
-const SPREADSHEET_ID = '1bkZ4PYM_7LaPDv00dKfqKZdb8vGbZrOrCb3gLVPMQ-s';
+// ID Spreadsheet target integrasi
+const SPREADSHEET_ID = '1cZHgmvzlXcjZCccbB3MnA97zwZZclLRFAotSDMs1q2w';
 
 function doGet(e) {
   const action = e.parameter.action;
   if (action === 'getObservations') {
     return createJsonResponse(getObservationsFromCloud());
   }
-  return createJsonResponse({status: 'API Active'});
+  return createJsonResponse({status: 'API Active', spreadsheetId: SPREADSHEET_ID});
 }
 
 function doPost(e) {
@@ -63,7 +64,7 @@ function saveObservationToCloud(obsData) {
     // Cari baris jika sudah ada (berdasarkan ID Guru)
     const rowIndex = data.findIndex(row => row[0] == teacherId);
     
-    // Susunan kolom: teacherId, teacherName, teacherNip, principalNip, date, subject, conversationTime, learningGoals, focusId, indicators, reflection, coachingFeedback, rtl, status
+    // Susunan kolom HARUS SAMA dengan createSheetStructure
     const rowData = [
       obsData.teacherId,
       obsData.teacherName || '',
@@ -72,7 +73,11 @@ function saveObservationToCloud(obsData) {
       obsData.date,
       obsData.subject,
       obsData.conversationTime,
-      obsData.learningGoals,
+      obsData.learningGoals || '',
+      obsData.developmentArea || '',
+      obsData.strategy || '',
+      obsData.supervisorNotes || '',
+      obsData.additionalNotes || '',
       obsData.focusId,
       JSON.stringify(obsData.indicators || {}),
       obsData.reflection || '',
@@ -92,27 +97,25 @@ function saveObservationToCloud(obsData) {
 
 function createSheetStructure(ss) {
   let sheet = ss.getSheetByName('Observasi');
-  if (sheet) {
-    // Jika sheet sudah ada tapi kolom nama belum ada atau struktur lama, sesuaikan.
-    const headers = sheet.getRange(1, 1, 1, 3).getValues()[0];
-    if (headers[2] !== 'teacherNip') {
-       ss.deleteSheet(sheet);
-       sheet = null;
-    }
-  }
-  
+  const headers = [
+    'teacherId', 'teacherName', 'teacherNip', 'principalNip', 'date', 'subject', 'conversationTime', 
+    'learningGoals', 'developmentArea', 'strategy', 'supervisorNotes', 'additionalNotes', 'focusId', 'indicators', 'reflection', 
+    'coachingFeedback', 'rtl', 'status'
+  ];
+
   if (!sheet) {
     sheet = ss.insertSheet('Observasi');
-    const headers = [
-      'teacherId', 'teacherName', 'teacherNip', 'principalNip', 'date', 'subject', 'conversationTime', 
-      'learningGoals', 'focusId', 'indicators', 'reflection', 
-      'coachingFeedback', 'rtl', 'status'
-    ];
     sheet.getRange(1, 1, 1, headers.length)
          .setValues([headers])
          .setFontWeight('bold')
          .setBackground('#f3f4f6');
     sheet.setFrozenRows(1);
+  } else {
+    // Pastikan header diperbarui jika ada kolom baru
+    const currentHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    if (currentHeaders.length < headers.length) {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    }
   }
   return sheet;
 }
