@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Camera, Check, XCircle, MousePointer2, ChevronDown, ListChecks, MessageSquareText, Plus } from 'lucide-react';
+import { Save, Camera, Check, CircleX, MousePointer2, ChevronDown, ListChecks, MessageSquareText, Plus } from 'lucide-react';
 import { PERFORMANCE_RUBRICS, TEACHERS } from '../constants';
 import { ObservationData, SupervisionStatus } from '../types';
 
@@ -7,14 +7,14 @@ import { ObservationData, SupervisionStatus } from '../types';
 const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
   // Instruksi Pembelajaran
   'ins_1': [
-    "Guru menanyakan 'mengapa' untuk menggali alasan jawaban murid",
+    "Guru menanyakan mengapa untuk menggali alasan jawaban murid",
     "Pertanyaan dikaitkan dengan pengalaman sehari-hari murid",
     "Murid aktif berebut menjawab pertanyaan pemantik",
-    "Guru memberi waktu tunggu (wait time) bagi murid berpikir",
+    "Guru memberi waktu tunggu bagi murid berpikir",
     "Pertanyaan memancing murid membandingkan dua konsep berbeda"
   ],
   'ins_2': [
-    "Setiap anggota kelompok memiliki peran (ketua/notulis/penyaji)",
+    "Setiap anggota kelompok memiliki peran ketua atau notulis",
     "Guru mendekati murid yang pasif dan memberi dorongan",
     "Pembagian tugas dalam kelompok terlihat sangat adil",
     "Murid yang biasanya diam mulai berani bicara",
@@ -24,8 +24,8 @@ const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
     "Guru berkeliling memastikan diskusi berjalan di setiap meja",
     "Interaksi antar murid menunjukkan sikap saling menghargai",
     "Terjadi debat argumen yang sehat antar kelompok",
-    "Guru menggunakan teknik 'Think-Pair-Share' dengan baik",
-    "Kelompok dibentuk secara heterogen (minat/kemampuan)"
+    "Guru menggunakan teknik Think-Pair-Share dengan baik",
+    "Kelompok dibentuk secara heterogen"
   ],
   // Disiplin Positif
   'dis_1': [
@@ -33,29 +33,29 @@ const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
     "Murid secara mandiri menyadari jika kelas mulai berisik",
     "Refleksi dinamika kelas dilakukan dengan santai dan terbuka",
     "Guru mendengarkan keberatan murid tentang aturan tertentu",
-    "Suasana kelas terlihat kondusif tanpa ada paksaan/teriakan"
+    "Suasana kelas terlihat kondusif tanpa ada paksaan"
   ],
   'dis_2': [
-    "Guru memberikan jempol/pujian saat murid merapikan buku",
+    "Guru memberikan jempol saat murid merapikan buku",
     "Penguatan positif dilakukan secara spesifik pada perilaku",
     "Terdapat apresiasi kelompok terbaik di akhir sesi",
-    "Guru menggunakan stiker/poin sebagai penguatan positif",
+    "Guru menggunakan stiker sebagai penguatan positif",
     "Pujian diberikan secara tulus dan merata ke semua murid"
   ],
   'dis_3': [
     "Guru melakukan segitiga restitusi pada murid yang terlambat",
     "Murid menawarkan solusi untuk memperbaiki kesalahannya",
     "Guru berbicara dengan nada rendah saat menangani konflik",
-    "Fokus pada perbaikan perilaku, bukan pada pemberian sanksi",
+    "Fokus pada perbaikan perilaku bukan pada pemberian sanksi",
     "Murid merasa aman dan tidak terpojok saat ditegur"
   ],
   // Umpan Balik
   'ub_1': [
-    "Guru menyebut murid sebagai 'calon pemimpin masa depan'",
+    "Guru menyampaikan motivasi masa depan yang optimis",
     "Penyampaian motivasi terasa personal dan menyentuh",
     "Guru yakin murid mampu menyelesaikan tantangan sulit",
     "Murid terlihat bangga saat potensinya disebut guru",
-    "Harapan tinggi disampaikan dengan bahasa yang optimis"
+    "Harapan tinggi disampaikan dengan bahasa yang inspiratif"
   ],
   'ub_2': [
     "Guru memuji murid yang biasanya lamban saat ia berhasil",
@@ -66,10 +66,10 @@ const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
   ],
   'ub_3': [
     "Soal tantangan level HOTS diberikan dengan bimbingan tepat",
-    "Guru memberikan scaffolding (bantuan) saat murid kesulitan",
+    "Guru memberikan bantuan saat murid kesulitan",
     "Tugas yang diberikan sangat relevan dengan minat murid",
     "Murid termotivasi mencoba tugas yang lebih sulit",
-    "Umpan balik fokus pada proses usaha murid, bukan hasil"
+    "Umpan balik fokus pada proses usaha murid"
   ],
   // Perhatian & Kepedulian
   'pk_1': [
@@ -77,7 +77,7 @@ const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
     "Terjadi kontak batin yang hangat antara guru dan murid",
     "Guru bertanya kabar murid yang terlihat kurang bersemangat",
     "Pendapat murid dihargai sepenuhnya tanpa interupsi",
-    "Guru menunjukkan ekspresi empati saat murid curhat"
+    "Guru menunjukkan ekspresi empati saat murid berbicara"
   ],
   'pk_2': [
     "Guru menyesuaikan penjelasan saat melihat murid bingung",
@@ -95,7 +95,6 @@ const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
   ]
 };
 
-// Fix for "Cannot find name 'Props'" error on line 99
 interface Props {
   observations: ObservationData[];
   onSave: (data: ObservationData) => void;
@@ -108,8 +107,17 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [isSaved, setIsSaved] = useState(false);
 
-  // Ambil rubrik yang sedang aktif
   const activeRubric = PERFORMANCE_RUBRICS.find(r => r.id === rubricId) || PERFORMANCE_RUBRICS[0];
+
+  // Fungsi pembersihan teks dari simbol
+  const cleanText = (text: string) => {
+    if (!text) return "";
+    return text
+      .replace(/[\{\}\[\]\"\'\\<>|_^]/g, "")
+      .replace(/[*#~`]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
 
   useEffect(() => {
     if (teacherId) {
@@ -118,7 +126,6 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
         if (existing.indicators) setIndicators(existing.indicators);
         if (existing.additionalNotes) setAdditionalNotes(existing.additionalNotes);
         
-        // Jika data lama ada, coba sesuaikan rubricId berdasarkan prefix ID indikator
         const firstKey = Object.keys(existing.indicators || {})[0];
         if (firstKey?.startsWith('dis_')) setRubricId('disiplin');
         else if (firstKey?.startsWith('ins_')) setRubricId('instruksi');
@@ -146,7 +153,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
       ...prev,
       [id]: { 
         checked: prev[id]?.checked || false, 
-        note 
+        note: cleanText(note) 
       }
     }));
   };
@@ -155,7 +162,6 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
     const currentNote = indicators[id]?.note || '';
     const newNote = currentNote ? `${currentNote}. ${suggestion}` : suggestion;
     updateNote(id, newNote);
-    // Otomatis centang teramati jika kita menambahkan catatan
     if (!indicators[id]?.checked) {
       setIndicators(prev => ({
         ...prev,
@@ -170,6 +176,15 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
     const teacherRef = TEACHERS.find(t => String(t.id) === String(teacherId));
     const existingData = observations.find(o => String(o.teacherId) === String(teacherId));
 
+    // Bersihkan semua catatan di dalam indikator sebelum simpan
+    const cleanedIndicators: any = {};
+    Object.keys(indicators).forEach(key => {
+      cleanedIndicators[key] = {
+        checked: indicators[key].checked,
+        note: cleanText(indicators[key].note)
+      };
+    });
+
     const data: ObservationData = {
       teacherId,
       teacherName: teacherRef?.name || existingData?.teacherName || 'Guru',
@@ -179,12 +194,13 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
       subject: existingData?.subject || teacherRef?.subject || '',
       conversationTime: existingData?.conversationTime || '',
       learningGoals: existingData?.learningGoals || '',
+      // Pastikan field Pra-Observasi tetap terbawa
       developmentArea: existingData?.developmentArea || '',
       strategy: existingData?.strategy || '',
       supervisorNotes: existingData?.supervisorNotes || '',
-      additionalNotes: additionalNotes,
+      additionalNotes: cleanText(additionalNotes),
       focusId: rubricId,
-      indicators,
+      indicators: cleanedIndicators,
       reflection: existingData?.reflection || '',
       coachingFeedback: existingData?.coachingFeedback || '',
       rtl: existingData?.rtl || '',
@@ -198,7 +214,6 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
 
   return (
     <div className="space-y-8 animate-in duration-500 pb-12">
-      {/* Header & Seleksi */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">Pelaksanaan Observasi</h2>
@@ -245,7 +260,6 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Info Rubrik Aktif */}
           <div className="bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10">
               <ListChecks size={120} />
@@ -255,7 +269,6 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
             <p className="text-slate-300 text-sm max-w-2xl leading-relaxed italic font-medium">{activeRubric.description}</p>
           </div>
 
-          {/* Daftar Target Perilaku */}
           <div className="grid grid-cols-1 gap-8">
             {activeRubric.targets.map((target) => (
               <div key={target.id} className={`bg-white p-8 rounded-[2.5rem] border transition-all duration-300 ${indicators[target.id]?.checked ? 'border-blue-300 ring-4 ring-blue-50 shadow-md' : 'border-slate-200 shadow-sm'}`}>
@@ -284,7 +297,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
                       
                       <div className="p-6 rounded-[2rem] bg-rose-50 border border-rose-100/50">
                         <div className="flex items-center text-rose-700 font-black text-[10px] mb-4 uppercase tracking-[0.2em]">
-                          <XCircle size={14} className="mr-2" /> Perilaku Dihindari
+                          <CircleX size={14} className="mr-2" /> Perilaku Dihindari
                         </div>
                         <ul className="space-y-3">
                           {target.dihindari.map((item, idx) => (
@@ -321,7 +334,6 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
                       />
                     </div>
                     
-                    {/* Suggestion Chips */}
                     <div className="space-y-2">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">Pilihan Cepat (Klik untuk menambah):</p>
                       <div className="flex flex-wrap gap-2">
@@ -344,7 +356,6 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
             ))}
           </div>
 
-          {/* Kolom Catatan Tambahan */}
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center space-x-2 text-slate-900">
               <MessageSquareText size={20} className="text-blue-600" />
