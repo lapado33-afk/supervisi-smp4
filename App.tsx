@@ -4,7 +4,7 @@ import {
   ClipboardCheck, 
   FileText, 
   Users, 
-  BarChart3, 
+  BarChart, 
   Settings,
   Search,
   ChevronRight,
@@ -32,21 +32,53 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const loadInitialData = async () => {
-      const data = await cloudStorage.fetchAll();
-      setObservations(data);
+      try {
+        const data = await cloudStorage.fetchAll();
+        setObservations(data);
+      } catch (err) {
+        console.error("Gagal memuat data awal:", err);
+      }
     };
     loadInitialData();
   }, []);
 
-  const updateObservations = async (data: ObservationData) => {
-    const enrichedData = {
-      ...data,
-      principalNip: principal.nip
-    };
-    
-    const newObs = [...observations.filter(o => o.teacherId !== data.teacherId), enrichedData];
-    setObservations(newObs);
-    await cloudStorage.save(enrichedData);
+  const updateObservations = async (newData: ObservationData) => {
+    setObservations(prev => {
+      // Cari data lama berdasarkan ID Guru
+      const existingIndex = prev.findIndex(o => String(o.teacherId) === String(newData.teacherId));
+      
+      let mergedData: ObservationData;
+      let newObservations: ObservationData[];
+
+      if (existingIndex > -1) {
+        // Lakukan MERGE: Ambil data lama, timpa dengan data baru
+        // Namun, JANGAN timpa field Pra-Observasi jika data baru mengirim string kosong
+        const oldData = prev[existingIndex];
+        mergedData = {
+          ...oldData,
+          ...newData,
+          // Proteksi field krusial agar tidak hilang
+          developmentArea: newData.developmentArea || oldData.developmentArea || '',
+          strategy: newData.strategy || oldData.strategy || '',
+          supervisorNotes: newData.supervisorNotes || oldData.supervisorNotes || '',
+          learningGoals: newData.learningGoals || oldData.learningGoals || '',
+          principalNip: principal.nip
+        };
+        newObservations = [...prev];
+        newObservations[existingIndex] = mergedData;
+      } else {
+        // Data baru sama sekali
+        mergedData = {
+          ...newData,
+          principalNip: principal.nip
+        };
+        newObservations = [...prev, mergedData];
+      }
+
+      // Simpan ke Cloud (Spreadsheet)
+      cloudStorage.save(mergedData);
+      return newObservations;
+    });
   };
 
   const NavItem = ({ id, icon: Icon, label }: { id: string, icon: any, label: string }) => (
@@ -58,19 +90,29 @@ const App: React.FC = () => {
           : 'text-slate-600 hover:bg-blue-50 hover:text-blue-600'
       }`}
     >
-      <Icon size={18} />
+      {Icon && <Icon size={18} />}
       <span className="font-semibold text-sm">{label}</span>
     </button>
   );
 
   const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard': return <Dashboard observations={observations} />;
-      case 'pra': return <PreObservation onSave={updateObservations} principalNip={principal.nip} />;
-      case 'observasi': return <ObservationForm observations={observations} onSave={updateObservations} />;
-      case 'pasca': return <PostObservation observations={observations} onSave={updateObservations} />;
-      case 'laporan': return <ReportView observations={observations} principalName={principal.name} principalNip={principal.nip} />;
-      default: return <Dashboard observations={observations} />;
+    try {
+      switch (activeTab) {
+        case 'dashboard': return <Dashboard observations={observations} />;
+        case 'pra': return <PreObservation onSave={updateObservations} principalNip={principal.nip} />;
+        case 'observasi': return <ObservationForm observations={observations} onSave={updateObservations} />;
+        case 'pasca': return <PostObservation observations={observations} onSave={updateObservations} />;
+        case 'laporan': return <ReportView observations={observations} principalName={principal.name} principalNip={principal.nip} />;
+        default: return <Dashboard observations={observations} />;
+      }
+    } catch (err) {
+      console.error("Render Error:", err);
+      return (
+        <div className="p-10 text-center">
+          <h2 className="text-xl font-bold text-red-600">Terjadi kesalahan saat memuat halaman.</h2>
+          <button onClick={() => setActiveTab('dashboard')} className="mt-4 text-blue-600 underline">Kembali ke Dashboard</button>
+        </div>
+      );
     }
   };
 
@@ -101,7 +143,7 @@ const App: React.FC = () => {
           <div className="mt-8 mb-2 px-4">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dokumentasi</span>
           </div>
-          <NavItem id="laporan" icon={BarChart3} label="Laporan Akhir" />
+          <NavItem id="laporan" icon={BarChart} label="Laporan Akhir" />
         </nav>
 
         {/* Identity & Supervisor Config */}
