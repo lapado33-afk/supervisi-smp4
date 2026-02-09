@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Download, Filter, X, FileText, Copy, Check } from 'lucide-react';
 import { ObservationData, SupervisionStatus } from '../types';
@@ -97,16 +96,24 @@ Rencana Tindak Lanjut: ${printData.rtl || '-'}
     const printSection = document.getElementById('print-section');
     if (!printSection) return;
 
+    // Bersihkan kontainer cetak lama
     printSection.innerHTML = '';
+    
+    // Clone konten dari preview modal
     const contentClone = reportRef.current.cloneNode(true) as HTMLElement;
     printSection.appendChild(contentClone);
 
-    const originalTitle = document.title;
-    const teacherName = printData.teacherName || 'Guru';
-    document.title = `Laporan_Supervisi_${teacherName.replace(/\s+/g, '_')}`;
-    window.print();
-    document.title = originalTitle;
-    printSection.innerHTML = '';
+    // Berikan jeda 100ms agar browser merender DOM baru sebelum dialog print muncul
+    setTimeout(() => {
+      const originalTitle = document.title;
+      const teacherName = printData.teacherName || 'Guru';
+      document.title = `Laporan_Supervisi_${teacherName.replace(/\s+/g, '_')}`;
+      
+      window.print();
+      
+      document.title = originalTitle;
+      // Jangan langsung bersihkan agar dialog print browser tidak kehilangan referensi gambar/style
+    }, 150);
   };
 
   return (
@@ -151,7 +158,7 @@ Rencana Tindak Lanjut: ${printData.rtl || '-'}
               </div>
             </div>
             <div className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-12 no-scrollbar">
-              <div ref={reportRef} className="bg-white shadow-xl mx-auto border border-slate-100 p-0 sm:p-4">
+              <div ref={reportRef} className="bg-white shadow-xl mx-auto border border-slate-100 p-0">
                 <PrintReport 
                   data={printData} 
                   principalName={principalName} 
