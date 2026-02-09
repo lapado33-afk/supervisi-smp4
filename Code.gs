@@ -37,6 +37,9 @@ function getObservationsFromCloud() {
   try {
     const ss = getSpreadsheet();
     const sheet = ss.getSheetByName('Observasi') || createSheetStructure(ss);
+    // Selalu pastikan struktur header benar sebelum mengambil data
+    createSheetStructure(ss); 
+    
     const data = sheet.getDataRange().getValues();
     if (data.length <= 1) return [];
     
@@ -44,9 +47,11 @@ function getObservationsFromCloud() {
     return data.slice(1).map(row => {
       const obs = {};
       headers.forEach((header, index) => {
-        if (header === 'indicators') {
-          try { obs[header] = JSON.parse(row[index] || '{}'); } catch(e) { obs[header] = {}; }
-        } else { obs[header] = row[index]; }
+        // Jika header kosong, gunakan fallback agar tidak error di aplikasi
+        const key = header || `column_${index}`;
+        if (key === 'indicators') {
+          try { obs[key] = JSON.parse(row[index] || '{}'); } catch(e) { obs[key] = {}; }
+        } else { obs[key] = row[index]; }
       });
       return obs;
     });
@@ -57,13 +62,16 @@ function saveObservationToCloud(obsData) {
   try {
     const ss = getSpreadsheet();
     const sheet = ss.getSheetByName('Observasi') || createSheetStructure(ss);
+    // Pastikan struktur header konsisten sebelum simpan
+    createSheetStructure(ss);
+
     const data = sheet.getDataRange().getValues();
     const teacherId = obsData.teacherId;
     
     // Cari baris jika sudah ada (berdasarkan ID Guru)
     const rowIndex = data.findIndex(row => row[0] == teacherId);
     
-    // Pastikan data status dan feedback bersih dari spasi liar atau karakter kontrol
+    // Pastikan data status dan feedback bersih
     const cleanStatus = String(obsData.status || '').trim();
     const cleanFeedback = String(obsData.coachingFeedback || '').trim();
     
@@ -108,17 +116,16 @@ function createSheetStructure(ss) {
 
   if (!sheet) {
     sheet = ss.insertSheet('Observasi');
-    sheet.getRange(1, 1, 1, headers.length)
-         .setValues([headers])
-         .setFontWeight('bold')
-         .setBackground('#f3f4f6');
-    sheet.setFrozenRows(1);
-  } else {
-    // Pastikan header diperbarui jika ada kolom baru
-    const currentHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    if (currentHeaders.length < headers.length) {
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    }
   }
+
+  // FORCE UPDATE HEADER: Selalu tulis ulang header di baris pertama
+  // Ini memastikan nama kolom tidak akan pernah kosong di respon spreadsheet
+  sheet.getRange(1, 1, 1, headers.length)
+       .setValues([headers])
+       .setFontWeight('bold')
+       .setBackground('#f3f4f6');
+  
+  sheet.setFrozenRows(1);
+  
   return sheet;
 }
