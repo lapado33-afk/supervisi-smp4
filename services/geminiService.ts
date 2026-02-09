@@ -1,22 +1,26 @@
 import { GoogleGenAI } from "@google/genai";
 
 /**
- * Fungsi untuk membersihkan teks dari simbol Markdown agar terlihat seperti ketikan formal
+ * Fungsi untuk membersihkan teks dari simbol-simbol teknis, markdown, 
+ * dan karakter sisa format JSON agar menjadi narasi yang benar-benar bersih.
  */
 const cleanMarkdown = (text: string) => {
   if (!text) return "";
   return text
-    .replace(/\*\*/g, "") // Hapus bold (**)
-    .replace(/\*/g, "")  // Hapus italic/bullet (*)
-    .replace(/#/g, "")   // Hapus header (#)
-    .replace(/__/g, "")  // Hapus underline (__)
-    .replace(/`/g, "")   // Hapus backtick (`)
+    // Hapus karakter kurung, tanda kutip, dan simbol teknis lainnya
+    .replace(/[\{\}\[\]\"\'\\<>|_^]/g, "") 
+    // Hapus simbol markdown (bintang, pagar, gelombang, backtick)
+    .replace(/[*#~`]/g, "")
+    // Hapus tanda hubung di awal baris yang sering jadi bullet point
+    .replace(/^\s*[-+]\s+/gm, "")
+    // Rapikan spasi berlebih
+    .replace(/\s+/g, " ")
     .trim();
 };
 
 export const generateCoachingAdvice = async (notes: string, focusId: string) => {
   try {
-    // Selalu inisialisasi instance baru dengan process.env.API_KEY sesuai panduan
+    // Selalu inisialisasi instance baru dengan process.env.API_KEY
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const focusMap: Record<string, string> = {
@@ -27,39 +31,43 @@ export const generateCoachingAdvice = async (notes: string, focusId: string) => 
     };
 
     const prompt = `
-      Anda adalah Desainer Pembelajaran Mendalam (Deep Learning Designer) yang berperan sebagai Kepala Sekolah profesional yang sangat suportif. 
-      Berikan umpan balik coaching dengan alur TIRTA (Tujuan, Identifikasi, Rencana, Tindak Lanjut) berdasarkan data observasi berikut:
+      PERAN: 
+      Anda adalah "Desainer Pembelajaran Mendalam" (Deep Learning Designer).
       
-      DATA TEMUAN OBSERVASI: "${notes}"
-      FOKUS PENGEMBANGAN: "${focusMap[focusId] || 'Umum'}"
+      TUGAS:
+      Berikan narasi umpan balik coaching alur TIRTA yang sangat bersih dan manusiawi.
       
-      ATURAN FORMAT (WAJIB):
-      1. DILARANG KERAS menggunakan simbol markdown seperti bintang (* atau **), pagar (#), atau bullet point strip (-).
-      2. Gunakan Bahasa Indonesia formal yang menyentuh hati dan memotivasi.
-      3. Sajikan dalam bentuk paragraf bersih yang mengalir. Gunakan penomoran angka biasa (1. 2. 3.) jika sangat diperlukan.
-      4. Sapa guru dengan hangat. Teks harus terasa seperti percakapan coaching langsung yang memberdayakan.
-      5. DILARANG menggunakan istilah "Profil Pelajar Pancasila". GANTI dengan istilah "8 Dimensi Profil Lulusan".
+      DATA OBSERVASI:
+      "${notes}"
+      
+      FOKUS: 
+      "${focusMap[focusId] || 'Umum'}"
+      
+      KONTROL OUTPUT (SANGAT KETAT):
+      1. DILARANG KERAS menggunakan simbol: { } [ ] " ' : \ / * # _ .
+      2. Tuliskan dalam bentuk PARAGRAF NARASI yang mengalir saja.
+      3. JANGAN berikan judul, JANGAN gunakan bullet points atau penomoran.
+      4. Gunakan Bahasa Indonesia formal yang menyentuh hati.
+      5. Ganti istilah "Profil Pelajar Pancasila" menjadi "8 Dimensi Profil Lulusan".
+      6. Output harus 100% teks polos tanpa kode atau format apa pun.
     `;
 
-    // Menggunakan format contents sebagai string sederhana sesuai dokumentasi terbaru
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt.trim(),
       config: {
         thinkingConfig: { thinkingBudget: 0 },
         temperature: 0.7,
-        topP: 0.95,
+        topP: 0.8,
       },
     });
 
-    // Mengambil teks secara langsung dari property .text (bukan method)
     const rawText = response.text || "";
     if (!rawText) throw new Error("Respon AI kosong.");
     
     return cleanMarkdown(rawText);
   } catch (error: any) {
     console.error("Gemini API Error Detail:", error);
-    // Mengembalikan pesan error yang ramah jika terjadi kegagalan
-    return "Maaf, sistem AI sedang sibuk atau terdapat kendala pada konfigurasi API. Silakan coba klik tombol 'Saran AI' sekali lagi atau masukkan umpan balik secara manual berdasarkan hasil refleksi.";
+    return "Maaf, sistem AI sedang sibuk. Silakan coba klik 'Saran AI' kembali atau isi manual.";
   }
 };
