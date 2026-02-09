@@ -53,16 +53,26 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
 
   const handleGenerateAI = async () => {
     if (!selectedObs) return;
-    setIsGenerating(true);
     
-    const allNotes = Object.values(selectedObs.indicators)
-      .map(i => (i as { note: string }).note)
-      .filter(n => n)
-      .join(". ");
+    setIsGenerating(true);
+    try {
+      // Mengambil semua catatan indikator secara aman
+      const indicators = selectedObs.indicators || {};
+      const allNotes = Object.values(indicators)
+        .map(i => (i as { note?: string }).note)
+        .filter(n => n && n.trim() !== "")
+        .join(". ");
 
-    const advice = await generateCoachingAdvice(allNotes || "Guru telah mengajar dengan baik.", selectedObs.focusId);
-    setFeedback(advice || '');
-    setIsGenerating(false);
+      const contextNotes = allNotes || "Guru telah melaksanakan pembelajaran sesuai rencana, namun perlu penguatan pada interaksi murid.";
+      const advice = await generateCoachingAdvice(contextNotes, selectedObs.focusId);
+      
+      setFeedback(advice || 'AI tidak dapat memberikan saran saat ini. Mohon isi secara manual.');
+    } catch (err) {
+      console.error("AI Generation Failed:", err);
+      setFeedback("Gagal menghubungi AI. Silakan periksa koneksi internet Anda.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleSave = () => {
@@ -182,7 +192,7 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
               <div className="flex items-center space-x-2">
                 <button 
                   onClick={copyFeedback}
-                  disabled={!feedback}
+                  disabled={!feedback || isGenerating}
                   className={`flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full transition-all border ${
                     isCopied ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
                   }`}
@@ -190,12 +200,24 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
                   {isCopied ? <CheckCircle size={14} /> : <Copy size={14} />}
                   <span>{isCopied ? 'Tersalin' : 'Salin'}</span>
                 </button>
-                <button onClick={handleGenerateAI} disabled={isGenerating} className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-4 py-2 rounded-full hover:bg-indigo-100 transition-all">
-                  <Sparkles size={14} /> <span>{isGenerating ? 'Analisis...' : 'Saran AI'}</span>
+                <button 
+                  onClick={handleGenerateAI} 
+                  disabled={isGenerating} 
+                  className={`flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full transition-all ${
+                    isGenerating ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'
+                  }`}
+                >
+                  <Sparkles size={14} className={isGenerating ? 'animate-pulse' : ''} /> 
+                  <span>{isGenerating ? 'Menganalisis...' : 'Saran AI'}</span>
                 </button>
               </div>
             </div>
-            <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-48 text-xs font-medium leading-relaxed outline-none focus:ring-2 focus:ring-blue-500" placeholder="Umpan balik coaching..." />
+            <textarea 
+              value={feedback} 
+              onChange={(e) => setFeedback(e.target.value)} 
+              className={`w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-48 text-xs font-medium leading-relaxed outline-none focus:ring-2 focus:ring-blue-500 transition-opacity ${isGenerating ? 'opacity-50' : 'opacity-100'}`} 
+              placeholder={isGenerating ? "AI sedang menyusun kalimat coaching..." : "Umpan balik coaching..."} 
+            />
           </div>
 
           <div className="space-y-4">
@@ -217,7 +239,8 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
           <div className="pt-6 border-t border-slate-100 flex justify-end">
             <button 
               onClick={handleSave}
-              className="bg-emerald-600 text-white px-10 py-5 rounded-2xl font-bold flex items-center space-x-2 hover:bg-emerald-700 shadow-xl shadow-emerald-200 transition-all active:scale-95"
+              disabled={isGenerating}
+              className="bg-emerald-600 text-white px-10 py-5 rounded-2xl font-bold flex items-center space-x-2 hover:bg-emerald-700 shadow-xl shadow-emerald-200 transition-all active:scale-95 disabled:opacity-50"
             >
               {isSaved ? <><CheckCircle size={20} /> <span>Siklus Selesai</span></> : <><Check size={20} /> <span>Simpan & Selesaikan</span></>}
             </button>
