@@ -1,4 +1,3 @@
-
 /**
  * BACKEND API - SISTEM SUPERVISI AKADEMIK DIGITAL
  * UPT SMPN 4 MAPPEDECENG
@@ -64,12 +63,16 @@ function saveObservationToCloud(obsData) {
     // Cari baris jika sudah ada (berdasarkan ID Guru)
     const rowIndex = data.findIndex(row => row[0] == teacherId);
     
+    // Pastikan data status dan feedback bersih dari spasi liar atau karakter kontrol
+    const cleanStatus = String(obsData.status || '').trim();
+    const cleanFeedback = String(obsData.coachingFeedback || '').trim();
+    
     // Susunan kolom HARUS SAMA dengan createSheetStructure
     const rowData = [
-      obsData.teacherId,
-      obsData.teacherName || '',
-      obsData.teacherNip || '',
-      obsData.principalNip || '',
+      String(obsData.teacherId).trim(),
+      String(obsData.teacherName || '').trim(),
+      String(obsData.teacherNip || '').trim(),
+      String(obsData.principalNip || '').trim(),
       obsData.date,
       obsData.subject,
       obsData.conversationTime,
@@ -81,9 +84,9 @@ function saveObservationToCloud(obsData) {
       obsData.focusId,
       JSON.stringify(obsData.indicators || {}),
       obsData.reflection || '',
-      obsData.coachingFeedback || '',
+      cleanFeedback,
       obsData.rtl || '',
-      obsData.status
+      cleanStatus
     ];
 
     if (rowIndex > -1) {
