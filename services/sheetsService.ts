@@ -6,7 +6,7 @@ import { ObservationData } from '../types';
  * 1. Deploy Code.gs di Apps Script sebagai Web App.
  * 2. Masukkan URL hasil deploy (Web App URL) ke variabel di bawah ini.
  */
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz9wOYhSxx7VNZSGG-fuw4FLHKiLlkVNmJZlGKthW4B3QdlJh8QceIpLrsmtUhJqCSh/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwXw9QJOwgiUPEnObtasrvMVD8-PfwUbFd1Rzgnc4t5pk7M_WWEuQbo3T6tx51rH39d/exec'; 
 
 export const cloudStorage = {
   async fetchAll(): Promise<ObservationData[]> {
