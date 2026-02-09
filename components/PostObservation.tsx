@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Sparkles, MessageCircle, RefreshCcw, Check, Clock, History, AlertCircle, MousePointer2, ListChecks, Lightbulb, CheckCircle, Copy } from 'lucide-react';
+import { Sparkles, MessageCircle, RefreshCcw, Check, Clock, History, CircleAlert, MousePointer2, ListChecks, Lightbulb, CircleCheck, Copy } from 'lucide-react';
 import { ObservationData, SupervisionStatus } from '../types';
 import { TEACHERS, FOCUS_OPTIONS } from '../constants';
 import { generateCoachingAdvice } from '../services/geminiService';
@@ -13,14 +12,14 @@ interface Props {
 const REFLECTION_SUGGESTIONS = [
   { category: 'Positif', label: 'Murid sangat antusias and aktif berdiskusi kelompok', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
   { category: 'Positif', label: 'Tujuan pembelajaran tercapai melalui media visual yang tepat', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-  { category: 'Tantangan', label: 'Manajemen waktu meleset pada bagian penutup/refleksi', color: 'bg-amber-50 text-amber-700 border-amber-100' },
-  { category: 'Tantangan', label: 'Beberapa murid di baris belakang kurang fokus/terlibat', color: 'bg-amber-50 text-amber-700 border-amber-100' },
+  { category: 'Tantangan', label: 'Manajemen waktu meleset pada bagian penutup atau refleksi', color: 'bg-amber-50 text-amber-700 border-amber-100' },
+  { category: 'Tantangan', label: 'Beberapa murid di baris belakang kurang fokus atau terlibat', color: 'bg-amber-50 text-amber-700 border-amber-100' },
 ];
 
 const RTL_SUGGESTIONS = [
   { category: 'PMM', label: 'Pelatihan Mandiri PMM Topik Diferensiasi', color: 'bg-blue-50 text-blue-700' },
-  { category: 'Kolaborasi', label: 'Observasi Rekan Sejawat (Peer Coaching)', color: 'bg-emerald-50 text-emerald-700' },
-  { category: 'Teknis', label: 'Penyusunan Ulang Modul Ajar (Diferensiasi Produk)', color: 'bg-amber-50 text-amber-700' },
+  { category: 'Kolaborasi', label: 'Observasi Rekan Sejawat', color: 'bg-emerald-50 text-emerald-700' },
+  { category: 'Teknis', label: 'Penyusunan Ulang Modul Ajar', color: 'bg-amber-50 text-amber-700' },
 ];
 
 const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
@@ -32,6 +31,15 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [viewMode, setViewMode] = useState<'pending' | 'history'>('pending');
+
+  const cleanText = (text: string) => {
+    if (!text) return "";
+    return text
+      .replace(/[\{\}\[\]\"\'\\<>|_^]/g, "")
+      .replace(/[*#~`]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
 
   const pendingObs = observations.filter(o => o.status === SupervisionStatus.OBSERVED);
   const historyObs = observations.filter(o => o.status === SupervisionStatus.FOLLOWED_UP);
@@ -56,20 +64,19 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
     
     setIsGenerating(true);
     try {
-      // Mengambil semua catatan indikator secara aman
       const indicators = selectedObs.indicators || {};
       const allNotes = Object.values(indicators)
         .map(i => (i as { note?: string }).note)
         .filter(n => n && n.trim() !== "")
         .join(". ");
 
-      const contextNotes = allNotes || "Guru telah melaksanakan pembelajaran sesuai rencana, namun perlu penguatan pada interaksi murid.";
+      const contextNotes = allNotes || "Guru telah melaksanakan pembelajaran sesuai rencana.";
       const advice = await generateCoachingAdvice(contextNotes, selectedObs.focusId);
       
-      setFeedback(advice || 'AI tidak dapat memberikan saran saat ini. Mohon isi secara manual.');
+      setFeedback(advice || 'AI tidak dapat memberikan saran saat ini.');
     } catch (err) {
       console.error("AI Generation Failed:", err);
-      setFeedback("Gagal menghubungi AI. Silakan periksa koneksi internet Anda.");
+      setFeedback("Gagal menghubungi AI. Silakan periksa koneksi internet.");
     } finally {
       setIsGenerating(false);
     }
@@ -81,13 +88,13 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
     const teacherRef = TEACHERS.find(t => String(t.id) === String(selectedObs.teacherId));
 
     const updated: ObservationData = {
-      ...selectedObs,
+      ...selectedObs, // Spread untuk menjaga developmentArea, strategy, supervisorNotes
       teacherName: teacherRef?.name || selectedObs.teacherName || 'Guru',
       teacherNip: selectedObs.teacherNip || teacherRef?.nip || '',
       principalNip: selectedObs.principalNip || '',
-      reflection,
-      coachingFeedback: feedback,
-      rtl,
+      reflection: cleanText(reflection),
+      coachingFeedback: cleanText(feedback),
+      rtl: cleanText(rtl),
       status: SupervisionStatus.FOLLOWED_UP
     };
     onSave(updated);
@@ -197,7 +204,7 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
                     isCopied ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
                   }`}
                 >
-                  {isCopied ? <CheckCircle size={14} /> : <Copy size={14} />}
+                  {isCopied ? <CircleCheck size={14} /> : <Copy size={14} />}
                   <span>{isCopied ? 'Tersalin' : 'Salin'}</span>
                 </button>
                 <button 
@@ -242,7 +249,7 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
               disabled={isGenerating}
               className="bg-emerald-600 text-white px-10 py-5 rounded-2xl font-bold flex items-center space-x-2 hover:bg-emerald-700 shadow-xl shadow-emerald-200 transition-all active:scale-95 disabled:opacity-50"
             >
-              {isSaved ? <><CheckCircle size={20} /> <span>Siklus Selesai</span></> : <><Check size={20} /> <span>Simpan & Selesaikan</span></>}
+              {isSaved ? <><CircleCheck size={20} /> <span>Siklus Selesai</span></> : <><Check size={20} /> <span>Simpan & Selesaikan</span></>}
             </button>
           </div>
         </div>
