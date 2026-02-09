@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 
 /**
@@ -17,7 +16,7 @@ const cleanMarkdown = (text: string) => {
 
 export const generateCoachingAdvice = async (notes: string, focusId: string) => {
   try {
-    // Inisialisasi instance setiap kali dipanggil sesuai aturan terbaru
+    // Selalu inisialisasi instance baru dengan process.env.API_KEY sesuai panduan
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const focusMap: Record<string, string> = {
@@ -42,22 +41,25 @@ export const generateCoachingAdvice = async (notes: string, focusId: string) => 
       5. DILARANG menggunakan istilah "Profil Pelajar Pancasila". GANTI dengan istilah "8 Dimensi Profil Lulusan".
     `;
 
-    // Menggunakan gemini-3-flash-preview untuk kecepatan tinggi
+    // Menggunakan format contents sebagai string sederhana sesuai dokumentasi terbaru
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: prompt.trim(),
       config: {
-        // Matikan thinking budget untuk respon instan pada tugas teks sederhana
         thinkingConfig: { thinkingBudget: 0 },
         temperature: 0.7,
         topP: 0.95,
       },
     });
 
+    // Mengambil teks secara langsung dari property .text (bukan method)
     const rawText = response.text || "";
+    if (!rawText) throw new Error("Respon AI kosong.");
+    
     return cleanMarkdown(rawText);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini API Error Detail:", error);
-    return "Maaf, sistem AI sedang sibuk. Silakan coba klik tombol 'Saran AI' sekali lagi atau masukkan umpan balik secara manual berdasarkan hasil refleksi.";
+    // Mengembalikan pesan error yang ramah jika terjadi kegagalan
+    return "Maaf, sistem AI sedang sibuk atau terdapat kendala pada konfigurasi API. Silakan coba klik tombol 'Saran AI' sekali lagi atau masukkan umpan balik secara manual berdasarkan hasil refleksi.";
   }
 };
