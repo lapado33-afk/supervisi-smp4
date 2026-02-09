@@ -50,6 +50,9 @@ const ReportView: React.FC<Props> = ({ observations, principalName, principalNip
     const teacher = TEACHERS.find(t => String(t.id) === String(printData.teacherId));
     const dateStr = new Date(printData.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
+    // Hanya ambil indikator yang checked
+    const activeIndicators = OBSERVATION_INDICATORS.filter(ind => printData.indicators?.[ind.id]?.checked);
+
     const text = `
 LAPORAN HASIL SUPERVISI AKADEMIK
 -------------------------------
@@ -65,8 +68,11 @@ I. PRA-OBSERVASI
 - Strategi / Metode: ${printData.strategy || '-'}
 - Catatan Supervisor: ${printData.supervisorNotes || '-'}
 
-II. HASIL OBSERVASI
-${OBSERVATION_INDICATORS.map((ind, idx) => `${idx + 1}. ${ind.label}: ${printData.indicators?.[ind.id]?.checked ? '[ADA]' : '[TIDAK]'} - Catatan: ${printData.indicators?.[ind.id]?.note || '-'}`).join('\n')}
+II. HASIL OBSERVASI (Indikator Teramati)
+${activeIndicators.length > 0 
+  ? activeIndicators.map((ind, idx) => `${idx + 1}. ${ind.label}: [ADA] - Catatan: ${printData.indicators?.[ind.id]?.note || '-'}`).join('\n')
+  : '- Tidak ada target perilaku terpilih yang teramati -'}
+
 Catatan Tambahan Pelaksanaan: ${printData.additionalNotes || '-'}
 
 III. PASCA-OBSERVASI
@@ -103,7 +109,7 @@ Rencana Tindak Lanjut: ${printData.rtl || '-'}
     const contentClone = reportRef.current.cloneNode(true) as HTMLElement;
     printSection.appendChild(contentClone);
 
-    // Berikan jeda 100ms agar browser merender DOM baru sebelum dialog print muncul
+    // Berikan jeda 150ms agar browser merender DOM baru sebelum dialog print muncul
     setTimeout(() => {
       const originalTitle = document.title;
       const teacherName = printData.teacherName || 'Guru';
@@ -112,7 +118,6 @@ Rencana Tindak Lanjut: ${printData.rtl || '-'}
       window.print();
       
       document.title = originalTitle;
-      // Jangan langsung bersihkan agar dialog print browser tidak kehilangan referensi gambar/style
     }, 150);
   };
 
@@ -129,7 +134,7 @@ Rencana Tindak Lanjut: ${printData.rtl || '-'}
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-900">Preview Laporan Resmi</h3>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1 italic">Siap Unduh atau Salin</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1 italic">Hanya menampilkan target terpilih</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
