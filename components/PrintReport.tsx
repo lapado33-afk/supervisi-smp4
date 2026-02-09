@@ -23,6 +23,11 @@ const PrintReport: React.FC<Props> = ({ data, principalName, principalNip }) => 
       })
     : '...........................';
 
+  // Filter hanya indikator yang di-cek (checked: true)
+  const observedIndicators = OBSERVATION_INDICATORS.filter(
+    ind => data.indicators && data.indicators[ind.id]?.checked
+  );
+
   return (
     <div className="bg-white p-10 text-black font-serif leading-normal text-xs max-w-[210mm] mx-auto min-h-[297mm]" style={{ color: 'black' }}>
       {/* KOP SURAT */}
@@ -82,24 +87,28 @@ const PrintReport: React.FC<Props> = ({ data, principalName, principalNip }) => 
           <thead>
             <tr className="bg-gray-50">
               <th className="border border-black p-2 w-8 text-center">No</th>
-              <th className="border border-black p-2 text-left">Aspek Pengamatan</th>
+              <th className="border border-black p-2 text-left">Aspek Pengamatan (Target Perilaku Terpilih)</th>
               <th className="border border-black p-2 w-20 text-center">Status</th>
               <th className="border border-black p-2 text-left">Catatan / Bukti Nyata</th>
             </tr>
           </thead>
           <tbody>
-            {OBSERVATION_INDICATORS.map((ind, idx) => (
-              <tr key={ind.id}>
-                <td className="border border-black p-2 text-center">{idx + 1}</td>
-                <td className="border border-black p-2 font-bold">{ind.label}</td>
-                <td className="border border-black p-2 text-center font-bold">
-                  {data.indicators && data.indicators[ind.id]?.checked ? 'ADA' : 'TIDAK'}
-                </td>
-                <td className="border border-black p-2 italic text-[11px] leading-snug">
-                  {data.indicators && data.indicators[ind.id]?.note ? data.indicators[ind.id].note : '-'}
-                </td>
+            {observedIndicators.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="border border-black p-4 text-center italic">Tidak ada target perilaku spesifik yang terpilih untuk diobservasi.</td>
               </tr>
-            ))}
+            ) : (
+              observedIndicators.map((ind, idx) => (
+                <tr key={ind.id}>
+                  <td className="border border-black p-2 text-center">{idx + 1}</td>
+                  <td className="border border-black p-2 font-bold">{ind.label}</td>
+                  <td className="border border-black p-2 text-center font-bold">ADA</td>
+                  <td className="border border-black p-2 italic text-[11px] leading-snug">
+                    {data.indicators && data.indicators[ind.id]?.note ? data.indicators[ind.id].note : '-'}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
         {data.additionalNotes && (
