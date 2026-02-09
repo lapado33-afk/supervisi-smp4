@@ -40,7 +40,7 @@ const PrintReport: React.FC<Props> = ({ data, principalName, principalNip }) => 
 
       <div className="text-center mb-6">
         <h3 className="text-sm font-bold underline uppercase">LAPORAN HASIL SUPERVISI AKADEMIK</h3>
-        <p className="text-xs font-bold">TAHUN PELAJARAN 2024/2025</p>
+        <p className="text-xs font-bold">TAHUN PELAJARAN 2025/2026</p>
       </div>
 
       {/* IDENTITAS */}
