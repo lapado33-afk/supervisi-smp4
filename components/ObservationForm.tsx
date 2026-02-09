@@ -54,7 +54,7 @@ const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
     "Guru menyampaikan motivasi masa depan yang optimis",
     "Penyampaian motivasi terasa personal dan menyentuh",
     "Guru yakin murid mampu menyelesaikan tantangan sulit",
-    "Murid terlihat bangga saat potensinya disebut guru",
+    "Murid terlihat proud saat potensinya disebut guru",
     "Harapan tinggi disampaikan dengan bahasa yang inspiratif"
   ],
   'ub_2': [
@@ -109,13 +109,13 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
 
   const activeRubric = PERFORMANCE_RUBRICS.find(r => r.id === rubricId) || PERFORMANCE_RUBRICS[0];
 
-  // Fungsi pembersihan teks dari simbol
+  // Pembersihan teks yang sangat ketat untuk menghilangkan simbol
   const cleanText = (text: string) => {
     if (!text) return "";
     return text
-      .replace(/[\{\}\[\]\"\'\\<>|_^]/g, "")
-      .replace(/[*#~`]/g, "")
-      .replace(/\s+/g, " ")
+      .replace(/[\{\}\[\]\"\'\\<>|_^]/g, "") // Hapus simbol teknis & JSON
+      .replace(/[*#~`]/g, "")               // Hapus simbol markdown
+      .replace(/\s+/g, " ")                 // Hapus spasi ganda
       .trim();
   };
 
@@ -126,6 +126,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
         if (existing.indicators) setIndicators(existing.indicators);
         if (existing.additionalNotes) setAdditionalNotes(existing.additionalNotes);
         
+        // Auto select rubric based on existing data if any
         const firstKey = Object.keys(existing.indicators || {})[0];
         if (firstKey?.startsWith('dis_')) setRubricId('disiplin');
         else if (firstKey?.startsWith('ins_')) setRubricId('instruksi');
@@ -174,7 +175,6 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
     if (!teacherId) return alert('Pilih guru terlebih dahulu!');
     
     const teacherRef = TEACHERS.find(t => String(t.id) === String(teacherId));
-    const existingData = observations.find(o => String(o.teacherId) === String(teacherId));
 
     // Bersihkan semua catatan di dalam indikator sebelum simpan
     const cleanedIndicators: any = {};
@@ -185,25 +185,23 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
       };
     });
 
+    // Kirim data minimal yang diubah di form ini
+    // Logika MERGE akan ditangani oleh updateObservations di App.tsx
     const data: ObservationData = {
       teacherId,
-      teacherName: teacherRef?.name || existingData?.teacherName || 'Guru',
-      teacherNip: existingData?.teacherNip || teacherRef?.nip || '',
-      principalNip: existingData?.principalNip || '',
-      date: existingData?.date || new Date().toISOString(),
-      subject: existingData?.subject || teacherRef?.subject || '',
-      conversationTime: existingData?.conversationTime || '',
-      learningGoals: existingData?.learningGoals || '',
-      // Pastikan field Pra-Observasi tetap terbawa
-      developmentArea: existingData?.developmentArea || '',
-      strategy: existingData?.strategy || '',
-      supervisorNotes: existingData?.supervisorNotes || '',
+      teacherName: teacherRef?.name || 'Guru',
+      teacherNip: teacherRef?.nip || '',
+      principalNip: '',
+      date: new Date().toISOString(),
+      subject: teacherRef?.subject || '',
+      conversationTime: '',
+      learningGoals: '',
       additionalNotes: cleanText(additionalNotes),
       focusId: rubricId,
       indicators: cleanedIndicators,
-      reflection: existingData?.reflection || '',
-      coachingFeedback: existingData?.coachingFeedback || '',
-      rtl: existingData?.rtl || '',
+      reflection: '',
+      coachingFeedback: '',
+      rtl: '',
       status: SupervisionStatus.OBSERVED
     };
 
