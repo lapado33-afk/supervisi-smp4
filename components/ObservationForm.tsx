@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Save, Camera, Check, CircleX, MousePointer2, ChevronDown, ListChecks, MessageSquareText, Plus } from 'lucide-react';
 import { PERFORMANCE_RUBRICS, TEACHERS } from '../constants';
@@ -5,6 +6,28 @@ import { ObservationData, SupervisionStatus } from '../types';
 
 // Mapping saran temuan spesifik berdasarkan ID Target Perilaku
 const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
+  // Keteraturan Suasana Kelas
+  'ks_1': [
+    "Guru menyapa murid dengan nama panggilannya secara hangat",
+    "Guru menyampaikan harapan positif terhadap suasana belajar hari ini",
+    "Aktivitas ice breaking singkat dilakukan di tengah jam rawan",
+    "Guru memberikan senyuman and kontak mata saat berkeliling",
+    "Guru menceritakan analogi positif sebelum memulai materi"
+  ],
+  'ks_2': [
+    "Guru menjelaskan bahwa kelompok dibentuk untuk saling membantu",
+    "Pembagian tugas (moderator, sekretaris) berjalan tertib",
+    "Guru berkeliling memastikan setiap anggota kelompok bicara",
+    "Murid yang biasanya menyendiri diajak bergabung ke grup",
+    "Tujuan diskusi kelompok disampaikan dengan bahasa yang jelas"
+  ],
+  'ks_3': [
+    "Poster kesepakatan kelas dipasang di tempat yang mudah terlihat",
+    "Guru menunjuk ke poster kesepakatan saat kelas mulai gaduh",
+    "Murid merefleksikan bahwa mereka telah menjaga ketenangan",
+    "Kesepakatan kelas dibuat melalui pemungutan suara bersama",
+    "Guru mengajak murid menilai efektivitas aturan di akhir sesi"
+  ],
   // Instruksi Pembelajaran
   'ins_1': [
     "Guru menanyakan mengapa untuk menggali alasan jawaban murid",
@@ -15,7 +38,7 @@ const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
   ],
   'ins_2': [
     "Setiap anggota kelompok memiliki peran ketua atau notulis",
-    "Guru mendekati murid yang pasif dan memberi dorongan",
+    "Guru mendekati murid yang pasif and memberi dorongan",
     "Pembagian tugas dalam kelompok terlihat sangat adil",
     "Murid yang biasanya diam mulai berani bicara",
     "Seluruh murid terlibat dalam menyelesaikan LKPD"
@@ -31,7 +54,7 @@ const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
   'dis_1': [
     "Guru mengajak murid meninjau kembali kesepakatan kelas",
     "Murid secara mandiri menyadari jika kelas mulai berisik",
-    "Refleksi dinamika kelas dilakukan dengan santai dan terbuka",
+    "Refleksi dinamika kelas dilakukan dengan santai and terbuka",
     "Guru mendengarkan keberatan murid tentang aturan tertentu",
     "Suasana kelas terlihat kondusif tanpa ada paksaan"
   ],
@@ -40,26 +63,26 @@ const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
     "Penguatan positif dilakukan secara spesifik pada perilaku",
     "Terdapat apresiasi kelompok terbaik di akhir sesi",
     "Guru menggunakan stiker sebagai penguatan positif",
-    "Pujian diberikan secara tulus dan merata ke semua murid"
+    "Pujian diberikan secara tulus and merata ke semua murid"
   ],
   'dis_3': [
     "Guru melakukan segitiga restitusi pada murid yang terlambat",
     "Murid menawarkan solusi untuk memperbaiki kesalahannya",
     "Guru berbicara dengan nada rendah saat menangani konflik",
     "Fokus pada perbaikan perilaku bukan pada pemberian sanksi",
-    "Murid merasa aman dan tidak terpojok saat ditegur"
+    "Murid merasa aman and tidak terpojok saat ditegur"
   ],
   // Umpan Balik
   'ub_1': [
     "Guru menyampaikan motivasi masa depan yang optimis",
-    "Penyampaian motivasi terasa personal dan menyentuh",
+    "Penyampaian motivasi terasa personal and menyentuh",
     "Guru yakin murid mampu menyelesaikan tantangan sulit",
     "Murid terlihat proud saat potensinya disebut guru",
     "Harapan tinggi disampaikan dengan bahasa yang inspiratif"
   ],
   'ub_2': [
     "Guru memuji murid yang biasanya lamban saat ia berhasil",
-    "Tidak ada perbedaan perlakuan antara murid pintar dan lainnya",
+    "Tidak ada perbedaan perlakuan antara murid pintar and lainnya",
     "Guru menyebutkan potensi unik setiap murid secara spesifik",
     "Seluruh murid merasa dihargai tanpa kecuali",
     "Guru memberikan perhatian yang sama ke meja baris belakang"
@@ -73,8 +96,8 @@ const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
   ],
   // Perhatian & Kepedulian
   'pk_1': [
-    "Guru menatap mata dan menyimak saat murid bercerita",
-    "Terjadi kontak batin yang hangat antara guru dan murid",
+    "Guru menatap mata and menyimak saat murid bercerita",
+    "Terjadi kontak batin yang hangat antara guru and murid",
     "Guru bertanya kabar murid yang terlihat kurang bersemangat",
     "Pendapat murid dihargai sepenuhnya tanpa interupsi",
     "Guru menunjukkan ekspresi empati saat murid berbicara"
@@ -102,20 +125,19 @@ interface Props {
 
 const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
   const [teacherId, setTeacherId] = useState('');
-  const [rubricId, setRubricId] = useState('instruksi');
+  const [rubricId, setRubricId] = useState('keteraturan_suasana');
   const [indicators, setIndicators] = useState<{[key: string]: {checked: boolean, note: string}}>({});
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [isSaved, setIsSaved] = useState(false);
 
   const activeRubric = PERFORMANCE_RUBRICS.find(r => r.id === rubricId) || PERFORMANCE_RUBRICS[0];
 
-  // Pembersihan teks yang sangat ketat untuk menghilangkan simbol
   const cleanText = (text: string) => {
     if (!text) return "";
     return text
-      .replace(/[\{\}\[\]\"\'\\<>|_^]/g, "") // Hapus simbol teknis & JSON
-      .replace(/[*#~`]/g, "")               // Hapus simbol markdown
-      .replace(/\s+/g, " ")                 // Hapus spasi ganda
+      .replace(/[\{\}\[\]\"\'\\<>|_^]/g, "")
+      .replace(/[*#~`]/g, "")
+      .replace(/\s+/g, " ")
       .trim();
   };
 
@@ -126,9 +148,9 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
         if (existing.indicators) setIndicators(existing.indicators);
         if (existing.additionalNotes) setAdditionalNotes(existing.additionalNotes);
         
-        // Auto select rubric based on existing data if any
         const firstKey = Object.keys(existing.indicators || {})[0];
-        if (firstKey?.startsWith('dis_')) setRubricId('disiplin');
+        if (firstKey?.startsWith('ks_')) setRubricId('keteraturan_suasana');
+        else if (firstKey?.startsWith('dis_')) setRubricId('disiplin');
         else if (firstKey?.startsWith('ins_')) setRubricId('instruksi');
         else if (firstKey?.startsWith('ub_')) setRubricId('umpan_balik');
         else if (firstKey?.startsWith('pk_')) setRubricId('perhatian_kepedulian');
@@ -176,7 +198,6 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
     
     const teacherRef = TEACHERS.find(t => String(t.id) === String(teacherId));
 
-    // Bersihkan semua catatan di dalam indikator sebelum simpan
     const cleanedIndicators: any = {};
     Object.keys(indicators).forEach(key => {
       cleanedIndicators[key] = {
@@ -185,8 +206,6 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
       };
     });
 
-    // Kirim data minimal yang diubah di form ini
-    // Logika MERGE akan ditangani oleh updateObservations di App.tsx
     const data: ObservationData = {
       teacherId,
       teacherName: teacherRef?.name || 'Guru',
@@ -254,7 +273,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
             <MousePointer2 size={64} strokeWidth={1.5} />
           </div>
           <h3 className="text-2xl font-black text-slate-900 uppercase">Pilih Guru & Indikator</h3>
-          <p className="text-slate-500 text-sm max-w-sm mt-3 leading-relaxed font-medium">Pilih nama guru dan indikator kinerja di atas untuk memunculkan instrumen pengamatan sesuai rubrik terbaru.</p>
+          <p className="text-slate-500 text-sm max-w-sm mt-3 leading-relaxed font-medium">Pilih nama guru and indikator kinerja di atas untuk memunculkan instrumen pengamatan sesuai rubrik terbaru.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -327,7 +346,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
                       <textarea 
                         value={indicators[target.id]?.note || ''}
                         onChange={(e) => updateNote(target.id, e.target.value)}
-                        placeholder="Contoh: Guru menggunakan pertanyaan terbuka 'Bagaimana pendapatmu...' yang memicu 3 murid merespon..."
+                        placeholder="Contoh: Guru menyapa murid dengan nama panggilannya secara hangat and menanyakan kabar..."
                         className="w-full bg-slate-50 border border-slate-200 p-6 rounded-[2rem] text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-all shadow-inner min-h-[160px]"
                       />
                     </div>
