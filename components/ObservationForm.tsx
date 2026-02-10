@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Save, Camera, Check, CircleX, MousePointer2, ChevronDown, ListChecks, MessageSquareText, Plus } from 'lucide-react';
 import { PERFORMANCE_RUBRICS, TEACHERS } from '../constants';
@@ -132,13 +131,16 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
 
   const activeRubric = PERFORMANCE_RUBRICS.find(r => r.id === rubricId) || PERFORMANCE_RUBRICS[0];
 
-  const cleanText = (text: string) => {
+  // Pembersihan teks saat mengetik (hanya hapus simbol, izinkan spasi)
+  const cleanTextTyping = (text: string) => {
     if (!text) return "";
-    return text
-      .replace(/[\{\}\[\]\"\'\\<>|_^]/g, "")
-      .replace(/[*#~`]/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
+    return text.replace(/[\{\}\[\]\"\'\\<>|_^]/g, "").replace(/[*#~`]/g, "");
+  };
+
+  // Pembersihan akhir (trim dan normalisasi spasi) saat simpan
+  const cleanTextFinal = (text: string) => {
+    if (!text) return "";
+    return text.replace(/\s+/g, " ").trim();
   };
 
   useEffect(() => {
@@ -176,7 +178,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
       ...prev,
       [id]: { 
         checked: prev[id]?.checked || false, 
-        note: cleanText(note) 
+        note: cleanTextTyping(note) 
       }
     }));
   };
@@ -198,11 +200,12 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
     
     const teacherRef = TEACHERS.find(t => String(t.id) === String(teacherId));
 
+    // Bersihkan semua catatan di dalam indikator dengan trim final
     const cleanedIndicators: any = {};
     Object.keys(indicators).forEach(key => {
       cleanedIndicators[key] = {
         checked: indicators[key].checked,
-        note: cleanText(indicators[key].note)
+        note: cleanTextFinal(indicators[key].note)
       };
     });
 
@@ -215,7 +218,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
       subject: teacherRef?.subject || '',
       conversationTime: '',
       learningGoals: '',
-      additionalNotes: cleanText(additionalNotes),
+      additionalNotes: cleanTextFinal(additionalNotes),
       focusId: rubricId,
       indicators: cleanedIndicators,
       reflection: '',
