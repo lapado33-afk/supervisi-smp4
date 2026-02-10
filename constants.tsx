@@ -17,6 +17,55 @@ export interface PerformanceRubric {
 
 export const PERFORMANCE_RUBRICS: PerformanceRubric[] = [
   {
+    id: 'keteraturan_suasana',
+    label: 'Keteraturan Suasana Kelas',
+    description: 'Praktik pedagogis berupa pembuatan kesepakatan kelas yang direfleksikan agar lingkungan pembelajaran menjadi teratur dan minimal gangguan sehingga murid dapat melakukan pembelajaran mendalam.',
+    targets: [
+      {
+        id: 'ks_1',
+        label: 'Guru melakukan komunikasi positif untuk membangun suasana kelas yang kondusif',
+        dianjurkan: [
+          'Guru memanggil murid dengan menyebut namanya',
+          'Guru menyampaikan harapan positif terhadap kelas',
+          'Guru melakukan aktivitas yang mencairkan suasana kelas'
+        ],
+        dihindari: [
+          'Guru memanggil murid dengan sebutan yang merendahkan',
+          'Guru menceritakan keluhan atau persoalan sekolah',
+          'Guru langsung mengajar tanpa mengkondisikan suasana kelas'
+        ]
+      },
+      {
+        id: 'ks_2',
+        label: 'Guru melakukan strategi pengelompokkan untuk mengaktifkan keterlibatan murid',
+        dianjurkan: [
+          'Guru mengelompokkan murid dengan menyampaikan tujuannya pada murid',
+          'Guru menyediakan beragam peran dalam kelompok agar semua anggota terlibat aktif',
+          'Guru mengajak murid untuk berinteraksi dan berperan aktif dalam kelompok'
+        ],
+        dihindari: [
+          'Guru membiarkan murid membentuk kelompok tanpa kriteria',
+          'Guru mengelompokkan murid tanpa menjelaskan tujuannya',
+          'Guru membiarkan murid mengatur sendiri kelompoknya'
+        ]
+      },
+      {
+        id: 'ks_3',
+        label: 'Guru membuat dan mengingatkan aturan/kesepakatan kelas',
+        dianjurkan: [
+          'Guru membuat aturan/kesepakatan kelas yang disetujui semua murid dan ditempel di kelas',
+          'Guru mengajak murid untuk mengingat aturan/kesepakatan kelas yang telah disepakati',
+          'Guru mengajak murid menilai seberapa efektif pelaksanaan aturan/kesepakatan kelas'
+        ],
+        dihindari: [
+          'Guru menetapkan aturan kelas tanpa mendiskusikan dengan murid',
+          'Guru menyebutkan aturan/kesepakatan kelas hanya saat terjadi pelanggaran',
+          'Guru melanggar aturan/kesepakatan kelas tanpa mengakuinya'
+        ]
+      }
+    ]
+  },
+  {
     id: 'instruksi',
     label: 'Instruksi Pembelajaran',
     description: 'Penjelasan terstruktur yang memandu murid memahami, mengaplikasi dan merefleksikan pembelajaran sebagai implementasi pembelajaran mendalam.',
@@ -137,7 +186,7 @@ export const PERFORMANCE_RUBRICS: PerformanceRubric[] = [
         id: 'ub_2',
         label: 'Guru mengkomunikasikan harapan positif terhadap semua peserta didik secara setara dan tanpa diskriminasi',
         dianjurkan: [
-          'Guru menyampaikan harapan positifnya secara terbuka dan berlaku bagi semua peserta didik.',
+          'Guru menyampaikan harapan positifnya secara terbuka and berlaku bagi semua peserta didik.',
           'Guru menyatakan secara eksplisit adanya keragaman potensi peserta didik.',
           'Guru menyebutkan potensi peserta didik meski peserta didik sendiri tidak menyadarinya.'
         ],
@@ -214,7 +263,6 @@ export const PERFORMANCE_RUBRICS: PerformanceRubric[] = [
   }
 ];
 
-// Menurunkan OBSERVATION_INDICATORS dari target rubrik untuk konsistensi data di laporan
 export const OBSERVATION_INDICATORS = PERFORMANCE_RUBRICS.flatMap(rubric => 
   rubric.targets.map(target => ({
     id: target.id,
@@ -241,8 +289,9 @@ export const TEACHERS: Teacher[] = [
 ];
 
 export const FOCUS_OPTIONS: ObservationFocus[] = [
-  { id: 'instruksi', title: 'Instruksi Pembelajaran', description: 'Fokus pada penjelasan terstruktur dan implementasi pembelajaran mendalam.' },
+  { id: 'keteraturan_suasana', title: 'Keteraturan Suasana Kelas', description: 'Fokus pada pembangunan suasana kondusif and kesepakatan kelas yang reflektif.' },
+  { id: 'instruksi', title: 'Instruksi Pembelajaran', description: 'Fokus pada penjelasan terstruktur and implementasi pembelajaran mendalam.' },
   { id: 'disiplin', title: 'Penerapan Disiplin Positif', description: 'Fokus pada pengelolaan perilaku melalui prinsip disiplin positif.' },
-  { id: 'umpan_balik', title: 'Umpan Balik Konstruktif', description: 'Fokus pada penyampaian kemajuan proses dan harapan tinggi masa depan murid.' },
-  { id: 'perhatian_kepedulian', title: 'Perhatian dan Kepedulian', description: 'Fokus pada pemberian perhatian dan dukungan sesuai kebutuhan belajar murid.' },
+  { id: 'umpan_balik', title: 'Umpan Balik Konstruktif', description: 'Fokus pada penyampaian kemajuan proses and harapan tinggi masa depan murid.' },
+  { id: 'perhatian_kepedulian', title: 'Perhatian and Kepedulian', description: 'Fokus pada pemberian perhatian and dukungan sesuai kebutuhan belajar murid.' },
 ];
