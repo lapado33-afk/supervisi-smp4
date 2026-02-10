@@ -32,13 +32,16 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
   const [isCopied, setIsCopied] = useState(false);
   const [viewMode, setViewMode] = useState<'pending' | 'history'>('pending');
 
-  const cleanText = (text: string) => {
+  // Pembersihan saat mengetik (hanya hapus simbol, izinkan spasi)
+  const cleanTextTyping = (text: string) => {
     if (!text) return "";
-    return text
-      .replace(/[\{\}\[\]\"\'\\<>|_^]/g, "")
-      .replace(/[*#~`]/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
+    return text.replace(/[\{\}\[\]\"\'\\<>|_^]/g, "").replace(/[*#~`]/g, "");
+  };
+
+  // Pembersihan final saat simpan
+  const cleanTextFinal = (text: string) => {
+    if (!text) return "";
+    return text.replace(/\s+/g, " ").trim();
   };
 
   const pendingObs = observations.filter(o => o.status === SupervisionStatus.OBSERVED);
@@ -92,9 +95,9 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
       teacherName: teacherRef?.name || selectedObs.teacherName || 'Guru',
       teacherNip: selectedObs.teacherNip || teacherRef?.nip || '',
       principalNip: selectedObs.principalNip || '',
-      reflection: cleanText(reflection),
-      coachingFeedback: cleanText(feedback),
-      rtl: cleanText(rtl),
+      reflection: cleanTextFinal(reflection),
+      coachingFeedback: cleanTextFinal(feedback),
+      rtl: cleanTextFinal(rtl),
       status: SupervisionStatus.FOLLOWED_UP
     };
     onSave(updated);
@@ -190,7 +193,7 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
                 </button>
               ))}
             </div>
-            <textarea value={reflection} onChange={(e) => setReflection(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-32 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Hasil refleksi guru..." />
+            <textarea value={reflection} onChange={(e) => setReflection(cleanTextTyping(e.target.value))} className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-32 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Hasil refleksi guru..." />
           </div>
 
           <div className="space-y-4">
@@ -221,7 +224,7 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
             </div>
             <textarea 
               value={feedback} 
-              onChange={(e) => setFeedback(e.target.value)} 
+              onChange={(e) => setFeedback(cleanTextTyping(e.target.value))} 
               className={`w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-48 text-xs font-medium leading-relaxed outline-none focus:ring-2 focus:ring-blue-500 transition-opacity ${isGenerating ? 'opacity-50' : 'opacity-100'}`} 
               placeholder={isGenerating ? "AI sedang menyusun kalimat coaching..." : "Umpan balik coaching..."} 
             />
@@ -240,7 +243,7 @@ const PostObservation: React.FC<Props> = ({ observations, onSave }) => {
                 </button>
               ))}
             </div>
-            <textarea value={rtl} onChange={(e) => setRtl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-32 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Komitmen pengembangan..." />
+            <textarea value={rtl} onChange={(e) => setRtl(cleanTextTyping(e.target.value))} className="w-full bg-slate-50 border border-slate-200 p-5 rounded-2xl h-32 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Komitmen pengembangan..." />
           </div>
 
           <div className="pt-6 border-t border-slate-100 flex justify-end">
