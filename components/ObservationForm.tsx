@@ -131,16 +131,14 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
 
   const activeRubric = PERFORMANCE_RUBRICS.find(r => r.id === rubricId) || PERFORMANCE_RUBRICS[0];
 
-  // Pembersihan teks saat mengetik (hanya hapus simbol, izinkan spasi)
-  const cleanTextTyping = (text: string) => {
-    if (!text) return "";
-    return text.replace(/[\{\}\[\]\"\'\\<>|_^]/g, "").replace(/[*#~`]/g, "");
-  };
-
-  // Pembersihan akhir (trim dan normalisasi spasi) saat simpan
+  // Pembersihan akhir (hapus simbol dan normalisasi spasi) saat tombol Simpan ditekan
   const cleanTextFinal = (text: string) => {
     if (!text) return "";
-    return text.replace(/\s+/g, " ").trim();
+    return text
+      .replace(/[\{\}\[\]\"\'\\<>|_^]/g, "") // Hapus simbol teknis
+      .replace(/[*#~`]/g, "")               // Hapus simbol markdown
+      .replace(/\s+/g, " ")                 // Normalisasi spasi ganda
+      .trim();
   };
 
   useEffect(() => {
@@ -174,11 +172,12 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
   };
 
   const updateNote = (id: string, note: string) => {
+    // Gunakan nilai mentah saat mengetik agar spasi lancar
     setIndicators(prev => ({
       ...prev,
       [id]: { 
         checked: prev[id]?.checked || false, 
-        note: cleanTextTyping(note) 
+        note: note 
       }
     }));
   };
@@ -200,7 +199,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
     
     const teacherRef = TEACHERS.find(t => String(t.id) === String(teacherId));
 
-    // Bersihkan semua catatan di dalam indikator dengan trim final
+    // Bersihkan semua catatan di dalam indikator dengan pembersihan final (termasuk simbol)
     const cleanedIndicators: any = {};
     Object.keys(indicators).forEach(key => {
       cleanedIndicators[key] = {
@@ -349,7 +348,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
                       <textarea 
                         value={indicators[target.id]?.note || ''}
                         onChange={(e) => updateNote(target.id, e.target.value)}
-                        placeholder="Contoh: Guru menyapa murid dengan nama panggilannya secara hangat and menanyakan kabar..."
+                        placeholder="Ketik catatan di sini... (spasi sudah diperbaiki)"
                         className="w-full bg-slate-50 border border-slate-200 p-6 rounded-[2rem] text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-all shadow-inner min-h-[160px]"
                       />
                     </div>
