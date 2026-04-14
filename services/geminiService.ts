@@ -26,7 +26,7 @@ export const generateCoachingAdvice = async (notes: string, focusId: string) => 
     const focusMap: Record<string, string> = {
       'instruksi': 'Kualitas Instruksi (Penjelasan terstruktur & pengaktifan kognitif)',
       'disiplin': 'Pengelolaan Kelas (Disiplin positif & restitusi)',
-      'umpan_balik': 'Umpan Balik Konstruktif (Harapan tinggi & tantangan bermakna)',
+      'umpan_balik': 'Umpan Balik Konstruktif (Umpan balik spesifik, berorientasi tujuan, & fokus pada proses)',
       'perhatian_kepedulian': 'Perhatian dan Kepedulian (Dukungan emosional & kebutuhan murid)'
     };
 
