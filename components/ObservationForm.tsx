@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Save, Camera, Check, CircleX, MousePointer2, ChevronDown, ListChecks, MessageSquareText, Plus } from 'lucide-react';
 import { PERFORMANCE_RUBRICS, TEACHERS } from '../constants';
@@ -73,25 +74,25 @@ const OBSERVATION_SUGGESTIONS: Record<string, string[]> = {
   ],
   // Umpan Balik
   'ub_1': [
-    "Guru menyampaikan motivasi masa depan yang optimis",
-    "Penyampaian motivasi terasa personal and menyentuh",
-    "Guru yakin murid mampu menyelesaikan tantangan sulit",
-    "Murid terlihat proud saat potensinya disebut guru",
-    "Harapan tinggi disampaikan dengan bahasa yang inspiratif"
+    "Guru memberikan umpan balik yang sangat spesifik pada bagian esai murid",
+    "Umpan balik dikaitkan langsung dengan tujuan pembelajaran hari ini",
+    "Guru menggunakan pertanyaan pemantik untuk memancing ide perbaikan dari murid",
+    "Guru menjelaskan kriteria keberhasilan dengan bahasa yang mudah dipahami",
+    "Umpan balik diberikan secara konstruktif tanpa menjatuhkan mental murid"
   ],
   'ub_2': [
-    "Guru memuji murid yang biasanya lamban saat ia berhasil",
-    "Tidak ada perbedaan perlakuan antara murid pintar and lainnya",
-    "Guru menyebutkan potensi unik setiap murid secara spesifik",
-    "Seluruh murid merasa dihargai tanpa kecuali",
-    "Guru memberikan perhatian yang sama ke meja baris belakang"
+    "Guru memuji ketekunan murid dalam mencoba berbagai cara penyelesaian",
+    "Umpan balik fokus pada progres usaha murid bukan sekadar jawaban benar",
+    "Guru menjelaskan bagaimana usaha murid akan berdampak pada hasil akhir",
+    "Murid diajak merefleksikan proses belajar yang telah mereka lalui",
+    "Guru memberikan apresiasi pada murid yang berani mencoba meski salah"
   ],
   'ub_3': [
-    "Soal tantangan level HOTS diberikan dengan bimbingan tepat",
-    "Guru memberikan bantuan saat murid kesulitan",
-    "Tugas yang diberikan sangat relevan dengan minat murid",
-    "Murid termotivasi mencoba tugas yang lebih sulit",
-    "Umpan balik fokus pada proses usaha murid"
+    "Guru membuka sesi tanya jawab khusus untuk membahas umpan balik",
+    "Terjadi dialog dua arah yang aktif antara guru and murid",
+    "Guru mendengarkan dengan seksama penjelasan murid tentang tugasnya",
+    "Waktu diskusi umpan balik disediakan cukup di akhir pembelajaran",
+    "Guru memberikan klarifikasi yang jelas atas pertanyaan murid"
   ],
   // Perhatian & Kepedulian
   'pk_1': [
@@ -131,7 +132,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
 
   const activeRubric = PERFORMANCE_RUBRICS.find(r => r.id === rubricId) || PERFORMANCE_RUBRICS[0];
 
-  // Pembersihan akhir (hapus simbol dan normalisasi spasi) saat tombol Simpan ditekan
+  // Pembersihan akhir (hapus simbol dan normalisasi spasi) HANYA saat tombol Simpan ditekan
   const cleanTextFinal = (text: string) => {
     if (!text) return "";
     return text
@@ -141,6 +142,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
       .trim();
   };
 
+  // Sync data hanya saat GURU dipilih, agar tidak mengganggu saat sedang mengetik
   useEffect(() => {
     if (teacherId) {
       const existing = observations.find(o => String(o.teacherId) === String(teacherId));
@@ -159,7 +161,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
         setAdditionalNotes('');
       }
     }
-  }, [teacherId, observations]);
+  }, [teacherId]); // Hapus 'observations' dari dependency untuk mencegah reset saat mengetik
 
   const toggleIndicator = (id: string) => {
     setIndicators(prev => ({
@@ -172,7 +174,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
   };
 
   const updateNote = (id: string, note: string) => {
-    // Gunakan nilai mentah saat mengetik agar spasi lancar
+    // Gunakan nilai MURNI dari textarea agar spasi bisa ditekan
     setIndicators(prev => ({
       ...prev,
       [id]: { 
@@ -199,7 +201,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
     
     const teacherRef = TEACHERS.find(t => String(t.id) === String(teacherId));
 
-    // Bersihkan semua catatan di dalam indikator dengan pembersihan final (termasuk simbol)
+    // Bersihkan semua catatan di dalam indikator dengan pembersihan final saat penyimpanan
     const cleanedIndicators: any = {};
     Object.keys(indicators).forEach(key => {
       cleanedIndicators[key] = {
@@ -348,7 +350,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
                       <textarea 
                         value={indicators[target.id]?.note || ''}
                         onChange={(e) => updateNote(target.id, e.target.value)}
-                        placeholder="Ketik catatan di sini... (spasi sudah diperbaiki)"
+                        placeholder="Ketik catatan di sini..."
                         className="w-full bg-slate-50 border border-slate-200 p-6 rounded-[2rem] text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none resize-none transition-all shadow-inner min-h-[160px]"
                       />
                     </div>
