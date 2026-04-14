@@ -170,44 +170,44 @@ export const PERFORMANCE_RUBRICS: PerformanceRubric[] = [
     targets: [
       {
         id: 'ub_1',
-        label: 'Guru mengkomunikasikan harapannya yang tinggi terhadap masa depan seluruh peserta didiknya',
+        label: 'Guru memberikan umpan balik spesifik & berorientasi tujuan',
         dianjurkan: [
-          'Guru menyampaikan masa depan idaman yang bermakna bagi peserta didik.',
-          'Guru mendiskusikan harapan positif peserta didik tentang masa depannya.',
-          'Guru menyebutkan potensi peserta didik disertai kemungkinan positif di masa depan.'
+          'Guru memberi umpan balik dengan menyebut spesifik bagian tugas yang dinilai bagus/buruk',
+          'Guru menghubungkan umpan balik dengan tujuan pembelajaran yang hendak dicapai',
+          'Guru menggunakan pertanyaan untuk membantu peserta didik memunculkan ide perbaikan'
         ],
         dihindari: [
-          'Guru menyebutkan perilaku-perilaku negatif peserta didiknya.',
-          'Guru menjelaskan harapan-harapan yang tidak relevan dengan peserta didik.',
-          'Guru mengabaikan potensi peserta didik karena lebih fokus pada kelemahannya.'
+          'Guru memberi umpan balik dengan kata-kata yang terlalu umum',
+          'Guru memberi umpan balik negatif tanpa membantu peserta didik menemukan ide perbaikan',
+          'Guru memberikan umpan balik dengan menggunakan bahasa yang terlalu sulit'
         ]
       },
       {
         id: 'ub_2',
-        label: 'Guru mengkomunikasikan harapan positif terhadap semua peserta didik secara setara dan tanpa diskriminasi',
+        label: 'Guru memberikan umpan balik yang fokus pada proses atau usaha peserta didik',
         dianjurkan: [
-          'Guru menyampaikan harapan positifnya secara terbuka and berlaku bagi semua peserta didik.',
-          'Guru menyatakan secara eksplisit adanya keragaman potensi peserta didik.',
-          'Guru menyebutkan potensi peserta didik meski peserta didik sendiri tidak menyadarinya.'
+          'Guru memberi umpan balik fokus pada usaha peserta didik sehingga lebih mungkin ada perbaikan',
+          'Guru menjelaskan keterkaitan usaha dengan hasil yang mungkin dicapai',
+          'Guru membantu peserta didik melakukan refleksi terhadap usaha yang telah dilakukannya'
         ],
         dihindari: [
-          'Guru menyampaikan harapan positif hanya pada peserta didik tertentu saja.',
-          'Guru mengulang harapan-harapan positif tertentu yang hanya relevan dengan sebagian peserta didik.',
-          'Guru menyebutkan potensi peserta didik yang terlihat menonjol saja.'
+          'Guru menyampaikan umpan balik yang hanya fokus pada hasil akhir',
+          'Guru tidak menyediakan kesempatan pada peserta didik melakukan perbaikan',
+          'Guru menggunakan pandangan subjektif dalam memberi umpan balik'
         ]
       },
       {
         id: 'ub_3',
-        label: 'Guru memberikan tantangan yang bermakna disertai motivasi untuk mencapainya',
+        label: 'Guru menunjukkan kesediaan mendiskusikan umpan balik dengan peserta didik',
         dianjurkan: [
-          'Menyediakan tantangan belajar yang relevan dengan pembelajaran dan bermakna bagi peserta didik.',
-          'Menunjukkan keyakinan berulang kali bahwa peserta didiknya mampu mengatasi tantangan belajar.',
-          'Memberikan umpan balik dan dukungan agar peserta didiknya berhasil.'
+          'Guru membuka komunikasi untuk pertanyaan dan klarifikasi lebih lanjut',
+          'Guru mendengarkan secara aktif tanggapan peserta didik terhadap umpan balik yang diterimanya',
+          'Guru menyediakan waktu mendiskusikan umpan balik selama atau setelah kelas'
         ],
         dihindari: [
-          'Memberikan tantangan belajar tapi tidak memberikan motivasi.',
-          'Menggunakan hadiah dan hukuman untuk memotivasi murid.',
-          'Mengkomunikasikan kompetisi dalam kelas secara berlebihan.'
+          'Guru menolak berdiskusi dengan peserta didik tentang umpan balik yang diberikan',
+          'Guru mengabaikan pertanyaan atau kekhawatiran peserta didik',
+          'Guru terburu-buru menjelaskan umpan balik sehingga tidak sempat berdiskusi'
         ]
       }
     ]
@@ -292,6 +292,6 @@ export const FOCUS_OPTIONS: ObservationFocus[] = [
   { id: 'keteraturan_suasana', title: 'Keteraturan Suasana Kelas', description: 'Fokus pada pembangunan suasana kondusif and kesepakatan kelas yang reflektif.' },
   { id: 'instruksi', title: 'Instruksi Pembelajaran', description: 'Fokus pada penjelasan terstruktur and implementasi pembelajaran mendalam.' },
   { id: 'disiplin', title: 'Penerapan Disiplin Positif', description: 'Fokus pada pengelolaan perilaku melalui prinsip disiplin positif.' },
-  { id: 'umpan_balik', title: 'Umpan Balik Konstruktif', description: 'Fokus pada penyampaian kemajuan proses and harapan tinggi masa depan murid.' },
+  { id: 'umpan_balik', title: 'Umpan Balik Konstruktif', description: 'Fokus pada pemberian umpan balik spesifik, berorientasi tujuan, and berbasis proses/usaha.' },
   { id: 'perhatian_kepedulian', title: 'Perhatian and Kepedulian', description: 'Fokus pada pemberian perhatian and dukungan sesuai kebutuhan belajar murid.' },
 ];
