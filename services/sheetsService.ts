@@ -6,7 +6,7 @@ import { ObservationData } from '../types';
  * 1. Deploy Code.gs di Apps Script sebagai Web App.
  * 2. Masukkan URL hasil deploy (Web App URL) ke variabel di bawah ini.
  */
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxzK7zBaqABJyKHGvR0AWkOjEDeKUnI_ZP8Eu56UogCy7mOOAJk1I38bB0QPdnrqMOy/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzD5_74MFjIq9HOzgJ-DpfzAYaPGQt8m5EXEhvV4cizVgKleQcEPz5TQLMEgaNYDepO/exec'; 
 
 export const cloudStorage = {
   async fetchAll(): Promise<ObservationData[]> {
@@ -66,6 +66,31 @@ export const cloudStorage = {
         console.log("Data dikirim ke antrean sinkronisasi Spreadsheet.");
       } catch (err) {
         console.warn("Gagal sinkronisasi ke Spreadsheet:", err);
+      }
+    }
+  },
+
+  async delete(teacherId: string): Promise<void> {
+    // 1. Hapus dari Local Storage
+    try {
+      const saved = localStorage.getItem('supervision_data');
+      const observations = saved ? JSON.parse(saved) : [];
+      const updated = observations.filter((o: any) => String(o.teacherId) !== String(teacherId));
+      localStorage.setItem('supervision_data', JSON.stringify(updated));
+    } catch (err) {
+      console.error("Gagal menghapus data lokal:", err);
+    }
+
+    // 2. Kirim sinyal hapus ke Google Spreadsheet jika URL tersedia
+    if (WEB_APP_URL) {
+      try {
+        await fetch(WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify({ action: 'delete', teacherId })
+        });
+      } catch (err) {
+        console.warn("Gagal sinkronisasi hapus ke Spreadsheet:", err);
       }
     }
   }
