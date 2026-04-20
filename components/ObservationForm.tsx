@@ -200,6 +200,7 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
     if (!teacherId) return alert('Pilih guru terlebih dahulu!');
     
     const teacherRef = TEACHERS.find(t => String(t.id) === String(teacherId));
+    const existingObs = observations.find(o => String(o.teacherId) === String(teacherId));
 
     // Bersihkan semua catatan di dalam indikator dengan pembersihan final saat penyimpanan
     const cleanedIndicators: any = {};
@@ -212,20 +213,22 @@ const ObservationForm: React.FC<Props> = ({ observations, onSave }) => {
 
     const data: ObservationData = {
       teacherId,
-      teacherName: teacherRef?.name || 'Guru',
-      teacherNip: teacherRef?.nip || '',
-      principalNip: '',
-      date: new Date().toISOString(),
-      subject: teacherRef?.subject || '',
-      conversationTime: '',
-      learningGoals: '',
+      teacherName: existingObs?.teacherName || teacherRef?.name || 'Guru',
+      teacherNip: existingObs?.teacherNip || teacherRef?.nip || '',
+      principalNip: existingObs?.principalNip || '',
+      date: existingObs?.date || new Date().toISOString(),
+      subject: existingObs?.subject || teacherRef?.subject || '',
+      conversationTime: existingObs?.conversationTime || '',
+      learningGoals: existingObs?.learningGoals || '',
       additionalNotes: cleanTextFinal(additionalNotes),
       focusId: rubricId,
       indicators: cleanedIndicators,
-      reflection: '',
-      coachingFeedback: '',
-      rtl: '',
-      status: SupervisionStatus.OBSERVED
+      reflection: existingObs?.reflection || '',
+      coachingFeedback: existingObs?.coachingFeedback || '',
+      rtl: existingObs?.rtl || '',
+      status: (existingObs?.status === SupervisionStatus.FOLLOWED_UP) 
+        ? SupervisionStatus.FOLLOWED_UP 
+        : SupervisionStatus.OBSERVED
     };
 
     onSave(data);
