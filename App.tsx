@@ -95,6 +95,19 @@ const App: React.FC = () => {
     </button>
   );
 
+  const deleteObservation = async (teacherId: string) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus laporan ini? Data yang dihapus tidak dapat dikembalikan.')) return;
+    
+    // 1. Hapus dari Cloud/Local Storage Service
+    await cloudStorage.delete(teacherId);
+
+    // 2. Update UI state
+    setObservations(prev => {
+      const filtered = prev.filter(o => String(o.teacherId) !== String(teacherId));
+      return filtered;
+    });
+  };
+
   const renderContent = () => {
     try {
       switch (activeTab) {
@@ -102,7 +115,14 @@ const App: React.FC = () => {
         case 'pra': return <PreObservation onSave={updateObservations} principalNip={principal.nip} />;
         case 'observasi': return <ObservationForm observations={observations} onSave={updateObservations} />;
         case 'pasca': return <PostObservation observations={observations} onSave={updateObservations} />;
-        case 'laporan': return <ReportView observations={observations} principalName={principal.name} principalNip={principal.nip} />;
+        case 'laporan': return (
+          <ReportView 
+            observations={observations} 
+            principalName={principal.name} 
+            principalNip={principal.nip} 
+            onDelete={deleteObservation}
+          />
+        );
         default: return <Dashboard observations={observations} />;
       }
     } catch (err) {
