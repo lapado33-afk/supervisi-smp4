@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Download, Filter, X, FileText, Copy, Check } from 'lucide-react';
+import { Download, Filter, X, FileText, Copy, Check, Trash2 } from 'lucide-react';
 import { ObservationData, SupervisionStatus } from '../types';
 import { TEACHERS, OBSERVATION_INDICATORS } from '../constants';
 import PrintReport from './PrintReport';
@@ -8,9 +8,10 @@ interface Props {
   observations: ObservationData[];
   principalName: string;
   principalNip: string;
+  onDelete?: (teacherId: string) => void;
 }
 
-const ReportView: React.FC<Props> = ({ observations, principalName, principalNip }) => {
+const ReportView: React.FC<Props> = ({ observations, principalName, principalNip, onDelete }) => {
   const [printData, setPrintData] = useState<ObservationData | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -227,13 +228,24 @@ Rencana Tindak Lanjut: ${printData.rtl || '-'}
                       </span>
                     </td>
                     <td className="px-8 py-6 text-center">
-                      <button 
-                        onClick={() => openPreview(obs)}
-                        className="inline-flex items-center space-x-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] hover:bg-blue-600 transition-all shadow-md active:scale-95"
-                      >
-                        <FileText size={14} />
-                        <span>BUKA</span>
-                      </button>
+                      <div className="flex items-center justify-center space-x-2">
+                        <button 
+                          onClick={() => openPreview(obs)}
+                          className="inline-flex items-center space-x-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] hover:bg-blue-600 transition-all shadow-md active:scale-95"
+                        >
+                          <FileText size={14} />
+                          <span>BUKA</span>
+                        </button>
+                        {onDelete && (
+                          <button 
+                            onClick={() => onDelete(obs.teacherId)}
+                            className="p-2.5 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-all active:scale-95 border border-rose-100"
+                            title="Hapus Laporan"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
