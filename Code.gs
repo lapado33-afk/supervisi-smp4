@@ -17,11 +17,32 @@ function doGet(e) {
 function doPost(e) {
   try {
     const postData = JSON.parse(e.postData.contents);
+    
+    if (postData.action === 'delete') {
+      return createJsonResponse(deleteObservationFromCloud(postData.teacherId));
+    }
+    
     const result = saveObservationToCloud(postData);
     return createJsonResponse(result);
   } catch (err) {
     return createJsonResponse({success: false, error: err.toString()});
   }
+}
+
+function deleteObservationFromCloud(teacherId) {
+  try {
+    const ss = getSpreadsheet();
+    const sheet = ss.getSheetByName('Observasi');
+    if (!sheet) return { success: true };
+
+    const data = sheet.getDataRange().getValues();
+    const rowIndex = data.findIndex(row => row[0] == teacherId);
+
+    if (rowIndex > -1) {
+      sheet.deleteRow(rowIndex + 1);
+    }
+    return { success: true };
+  } catch (e) { return { success: false, error: e.toString() }; }
 }
 
 function createJsonResponse(data) {
